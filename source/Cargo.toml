@@ -1,5 +1,5 @@
 [package]
-name = "Polytope4D"
+name = "polytope_4d"
 version = "0.1.0"
 authors = ["javaharlalnehru <grechanichenkos@yandex.ru>"]
 edition = "2018"
