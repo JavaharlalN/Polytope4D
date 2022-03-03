@@ -12,4 +12,8 @@ impl Edge {
             b: b
         }
     }
+
+    pub fn len(self) -> f32 {
+        dist(self.a, self.b)
+    }
 }

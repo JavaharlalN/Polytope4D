@@ -1,6 +1,6 @@
 use super::*;
 
-trait Rotated {
+pub trait Rotated {
     type Out;
     fn rotated_xy(self, angle: &f32) -> Self::Out;
     fn rotated_xz(self, angle: &f32) -> Self::Out;
