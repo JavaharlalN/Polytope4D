@@ -1,7 +1,8 @@
-mod edge;
 mod vec4f;
+mod edge;
 mod face;
-mod rotation;
+mod display;
+use vec4f::*;
 use edge::*;
 use face::*;
 

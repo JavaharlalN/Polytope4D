@@ -2,9 +2,6 @@ use std::ops::Add;
 use std::ops::Div;
 use std::ops::Sub;
 use std::ops::Mul;
-use std::fmt::Display;
-use std::fmt::Result;
-use std::fmt::Formatter;
 use std::clone::Clone;
 
 pub fn dist(v1: Vec4f, v2: Vec4f) -> f32 {
@@ -91,11 +88,5 @@ impl Div<f32> for Vec4f {
             self.z / v,
             self.w / v,
         )
-    }
-}
-
-impl Display for Vec4f {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "({}, {}, {}, {})", self.x, self.y, self.z, self.w)
     }
 }
