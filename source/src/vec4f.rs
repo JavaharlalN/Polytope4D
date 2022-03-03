@@ -7,12 +7,11 @@ use std::fmt::Result;
 use std::fmt::Formatter;
 use std::clone::Clone;
 
-
 pub fn dist(v1: Vec4f, v2: Vec4f) -> f32 {
     ((v1.x - v2.x).powf(2.0) + (v1.x - v2.x).powf(2.0) + (v1.x - v2.x).powf(2.0) + (v1.x - v2.x).powf(2.0)).sqrt()
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Vec4f {
     pub x: f32,
     pub y: f32,

@@ -1,6 +1,6 @@
 use super::*;
 
-pub trait Rotated {
+pub trait Rotation {
     type Out;
     fn rotated_xy(self, angle: &f32) -> Self::Out;
     fn rotated_xz(self, angle: &f32) -> Self::Out;
@@ -10,7 +10,7 @@ pub trait Rotated {
     fn rotated_zw(self, angle: &f32) -> Self::Out;
 }
 
-impl Rotated for Vec4f {
+impl Rotation for Vec4f {
     type Out = Vec4f;
     fn rotated_xy(self, angle: &f32) -> Self::Out {
         let cos = angle.cos();
@@ -79,7 +79,7 @@ impl Rotated for Vec4f {
     }
 }
 
-impl Rotated for Edge {
+impl Rotation for Edge {
     type Out = Edge;
     fn rotated_xy(self, angle: &f32) -> Self::Out {
         Edge::new (
@@ -121,5 +121,56 @@ impl Rotated for Edge {
             self.a.rotated_zw(angle),
             self.b.rotated_zw(angle)
         )
+    }
+}
+
+impl Rotation for Face {
+    type Out = Face;
+    fn rotated_xy(self, angle: &f32) -> Self::Out {
+        Face::from_verts(vec![
+            self.vertices[0].rotated_xy(angle),
+            self.vertices[1].rotated_xy(angle),
+            self.vertices[2].rotated_xy(angle),
+        ])
+    }
+
+    fn rotated_xz(self, angle: &f32) -> Self::Out {
+        Face::from_verts(vec![
+            self.vertices[0].rotated_xz(angle),
+            self.vertices[1].rotated_xz(angle),
+            self.vertices[2].rotated_xz(angle),
+        ])
+    }
+
+    fn rotated_xw(self, angle: &f32) -> Self::Out {
+        Face::from_verts(vec![
+            self.vertices[0].rotated_xw(angle),
+            self.vertices[1].rotated_xw(angle),
+            self.vertices[2].rotated_xw(angle),
+        ])
+    }
+
+    fn rotated_yz(self, angle: &f32) -> Self::Out {
+        Face::from_verts(vec![
+            self.vertices[0].rotated_yz(angle),
+            self.vertices[1].rotated_yz(angle),
+            self.vertices[2].rotated_yz(angle),
+        ])
+    }
+
+    fn rotated_yw(self, angle: &f32) -> Self::Out {
+        Face::from_verts(vec![
+            self.vertices[0].rotated_yw(angle),
+            self.vertices[1].rotated_yw(angle),
+            self.vertices[2].rotated_yw(angle),
+        ])
+    }
+
+    fn rotated_zw(self, angle: &f32) -> Self::Out {
+        Face::from_verts(vec![
+            self.vertices[0].rotated_zw(angle),
+            self.vertices[1].rotated_zw(angle),
+            self.vertices[2].rotated_zw(angle),
+        ])
     }
 }
