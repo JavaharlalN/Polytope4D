@@ -2,6 +2,7 @@ mod vec4f;
 mod edge;
 mod face;
 mod display;
+mod comparison;
 use vec4f::*;
 use edge::*;
 use face::*;

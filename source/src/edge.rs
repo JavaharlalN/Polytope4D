@@ -1,5 +1,6 @@
 pub use super::vec4f::*;
 
+#[derive(Debug, Copy, Clone)]
 pub struct Edge {
     pub a: Vec4f,
     pub b: Vec4f,

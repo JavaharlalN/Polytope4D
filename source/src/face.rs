@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Debug, Clone)]
 pub struct Face {
     pub vertices: Vec<Vec4f>,
     pub edges: Vec<Edge>
@@ -25,5 +26,13 @@ impl Face {
                 Edge::new(c, a),
             ]
         }
+    }
+
+    pub fn area(self) -> f32 {
+        let a = self.edges[0].len();
+        let b = self.edges[1].len();
+        let c = self.edges[2].len();
+        let s = (a + b + c) / 2.0;
+        (s * (s - a) * (s - b) * (s - c)).sqrt()
     }
 }
