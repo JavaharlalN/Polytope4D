@@ -4,6 +4,8 @@ mod face;
 mod display;
 mod comparison;
 mod cell;
+mod window;
+mod field;
 use cell::*;
 use vec4f::*;
 use edge::*;
@@ -12,8 +14,8 @@ use macroquad::prelude::*;
 
 #[macroquad::main("Polytope 4D")]
 async fn main() {
-    let v1 = Vec4f::newf(0.0);
-    let v2 = Vec4f::newf(0.0);
-    let v3 = Vec4f::newf(0.0);
-    println!("{}", Face::from_verts(vec![v1, v2, v3]));
+    loop {
+        clear_background(Color::new(1.0, 1.0, 1.0, 1.0));
+        next_frame().await
+    }
 }

@@ -41,6 +41,16 @@ impl Vec4f {
     pub fn len(self) -> f32 {
         dist(self, Vec4f::newf(0.0))
     }
+
+    pub fn norm(self) -> Vec4f {
+        let l = self.len();
+        Vec4f::new(
+            self.x / l,
+            self.y / l,
+            self.z / l,
+            self.w / l,
+        )
+    }
 }
 
 impl Add for Vec4f {
