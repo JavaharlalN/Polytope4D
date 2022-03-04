@@ -1,4 +1,5 @@
-pub use super::vec4f::*;
+use super::Vec4f;
+use super::dist;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Edge {

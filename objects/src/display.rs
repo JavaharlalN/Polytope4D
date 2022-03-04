@@ -1,7 +1,4 @@
 use super::*;
-use std::fmt::Display;
-use std::fmt::Result;
-use std::fmt::Formatter;
 
 impl Display for Vec4f {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -9,9 +6,9 @@ impl Display for Vec4f {
     }
 }
 
-impl Display for Edge {
+impl Display for Cell {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Edge(\n  {},\n  {}\n)", self.a, self.b)
+        write!(f, "Cell=====\n  {},\n  {},\n  {},\n  {}\n=====", self.faces[0], self.faces[1], self.faces[2], self.faces[3])
     }
 }
 
@@ -21,8 +18,8 @@ impl Display for Face {
     }
 }
 
-impl Display for Cell {
+impl Display for Edge {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Cell=====\n  {},\n  {},\n  {},\n  {}\n=====", self.faces[0], self.faces[1], self.faces[2], self.faces[3])
+        write!(f, "Edge(\n  {},\n  {}\n)", self.a, self.b)
     }
 }

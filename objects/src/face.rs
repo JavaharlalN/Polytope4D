@@ -1,4 +1,5 @@
-use super::*;
+use super::Edge;
+use super::Vec4f;
 
 #[derive(Debug, Clone)]
 pub struct Face {

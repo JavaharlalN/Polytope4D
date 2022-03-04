@@ -1,5 +1,6 @@
-use super::*;
-
+use super::Vec4f;
+use super::Edge;
+use super::Face;
 
 #[derive(Debug, Clone)]
 pub struct Cell {
