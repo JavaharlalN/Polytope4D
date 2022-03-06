@@ -6,6 +6,7 @@ mod cell;
 mod comparison;
 mod rotation;
 mod object;
+mod camera;
 
 pub use std::fmt::Display;
 pub use std::fmt::Result;
@@ -15,3 +16,4 @@ pub use vector::*;
 pub use edge::*;
 pub use face::*;
 pub use cell::*;
+pub use camera::*;

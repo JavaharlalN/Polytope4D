@@ -21,10 +21,10 @@ pub struct Vec4f {
 impl Vec4f {
     pub fn new(x: f32, y: f32, z: f32, w: f32) -> Vec4f {
         Vec4f {
-            x: x,
-            y: y,
-            z: z,
-            w: w,
+            x,
+            y,
+            z,
+            w,
             proj_x: 0.0,
             proj_y: 0.0,
         }
