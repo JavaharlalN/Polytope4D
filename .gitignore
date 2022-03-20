@@ -1,6 +1,3 @@
-source/Cargo.lock
-source/target/
-objects/target/
-objects/Cargo.lock
-window/Cargo.lock
-window/target/
+target/
+Cargo.lock
+workspace.code-workspace
