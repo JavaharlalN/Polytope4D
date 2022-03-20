@@ -12,9 +12,9 @@ pub struct Cell {
 impl Cell {
     pub fn new(vertices: Vec<Vec4f>, edges: Vec<Edge>, faces: Vec<Face>) -> Cell {
         Cell{
-            vertices: vertices,
-            edges: edges,
-            faces: faces,
+            vertices,
+            edges,
+            faces,
         }
     }
 
