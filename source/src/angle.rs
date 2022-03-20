@@ -1,12 +1,10 @@
-use super::Vec4f;
-
 pub struct Angle {
-    xy: f32,
-    xz: f32,
-    xw: f32,
-    yz: f32,
-    yw: f32,
-    zw: f32,
+    pub xy: f32,
+    pub xz: f32,
+    pub xw: f32,
+    pub yz: f32,
+    pub yw: f32,
+    pub zw: f32,
 }
 
 impl Angle {

@@ -5,7 +5,7 @@ use std::ops::Mul;
 use std::clone::Clone;
 
 pub fn dist(v1: Vec4f, v2: Vec4f) -> f32 {
-    ((v1.x - v2.x).powf(2.0) + (v1.x - v2.x).powf(2.0) + (v1.x - v2.x).powf(2.0) + (v1.x - v2.x).powf(2.0)).sqrt()
+    ((v1.x - v2.x).powf(2.0) + (v1.y - v2.y).powf(2.0) + (v1.z - v2.z).powf(2.0) + (v1.w - v2.w).powf(2.0)).sqrt()
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -31,7 +31,11 @@ impl Vec4f {
     }
 
     pub fn newf(v: f32) -> Vec4f {
-        Vec4f::new (v, v, v, v)
+        Vec4f::new(v, v, v, v)
+    }
+
+    pub fn new0() -> Self {
+        Vec4f::newf(0.0)
     }
 
     pub fn dot(self, v: Vec4f) -> f32 {
@@ -50,6 +54,26 @@ impl Vec4f {
             self.z / l,
             self.w / l,
         )
+    }
+
+    pub fn get_proj(self) -> (f32, f32) {
+        (self.proj_x, self.proj_y)
+    }
+
+    pub fn set_proj(mut self, v: (f32, f32)) {
+        self.proj_x = v.0;
+        self.proj_y = v.1;
+    }
+
+    pub fn with_proj(self, v: (f32, f32)) -> Self {
+        Vec4f {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+            w: self.w,
+            proj_x: v.0,
+            proj_y: v.1,
+        }
     }
 }
 
