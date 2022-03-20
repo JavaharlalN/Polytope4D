@@ -1,0 +1,11 @@
+/home/javaharlalnehru/Документы/проект/Polytope4D/source/target/rls/debug/deps/sapp_linux-bc1dc459648aa39d.rmeta: /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/lib.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/gl.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/rand.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/x.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/x_cursor.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/xi_input.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/clipboard.rs
+
+/home/javaharlalnehru/Документы/проект/Polytope4D/source/target/rls/debug/deps/sapp_linux-bc1dc459648aa39d.d: /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/lib.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/gl.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/rand.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/x.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/x_cursor.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/xi_input.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/clipboard.rs
+
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/lib.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/gl.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/rand.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/x.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/x_cursor.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/xi_input.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/sapp-linux-0.1.14/src/clipboard.rs:

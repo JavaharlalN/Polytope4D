@@ -1,0 +1,10 @@
+/home/javaharlalnehru/Документы/проект/Polytope4D/source/target/rls/debug/deps/miniquad-b5e6883477fc24ea.rmeta: /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/lib.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/clipboard.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/conf.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/event.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/fs.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/graphics.rs
+
+/home/javaharlalnehru/Документы/проект/Polytope4D/source/target/rls/debug/deps/miniquad-b5e6883477fc24ea.d: /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/lib.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/clipboard.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/conf.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/event.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/fs.rs /home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/graphics.rs
+
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/lib.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/clipboard.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/conf.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/event.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/fs.rs:
+/home/javaharlalnehru/.cargo/registry/src/github.com-1ecc6299db9ec823/miniquad-0.2.32/src/graphics.rs:
