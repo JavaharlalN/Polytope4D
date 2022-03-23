@@ -47,6 +47,10 @@ impl Vec4f {
         self.x * v.x + self.y * v.y + self.z * v.z + self.w * v.w
     }
 
+    pub fn move_x(mut self, v: f32) {
+        self.x += v;
+    }
+
     pub fn len(self) -> f32 {
         dist(self, Vec4f::newf(0.0))
     }
@@ -65,7 +69,7 @@ impl Vec4f {
         (self.proj_x, self.proj_y)
     }
 
-    pub fn set_proj(mut self, v: (f32, f32)) {
+    pub fn set_proj(&mut self, v: (f32, f32)) {
         self.proj_x = v.0;
         self.proj_y = v.1;
     }
@@ -81,7 +85,7 @@ impl Vec4f {
         }
     }
 
-    pub fn calc(self, a: &Angle, d: f32, window: &MainWindow) -> Vec4f {
+    pub fn calc(&mut self, a: &Angle, d: f32, window: &MainWindow) -> Vec4f {
         let rotated = self.rotated_xy(&a.xy)
                                 .rotated_xz(&a.xz)
                                 .rotated_xw(&a.xw)
@@ -96,6 +100,7 @@ impl Vec4f {
         let z = 1.0 / (d - rotated.w - proj3d.2) * SCALE;
         let x = proj3d.0 * z + window.config.w / 2.0;
         let y = proj3d.1 * z + window.config.h / 2.0;
+        self.set_proj((x, y));
         self.with_proj((x, y))
     }
 }

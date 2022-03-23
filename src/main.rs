@@ -70,16 +70,19 @@ fn resize_event<'a>(windows: &'a mut WindowGroup) {
     (*windows).main.set_size(screen_width(), screen_height());
 }
 
-fn draw_vertices(vertices: Vec<Vec4f>, a: &Angle, d: f32) {
+fn draw_vertices(vertices: Vec<Vec4f>) {
     for v in vertices.into_iter() {
         let proj = v.get_proj();
         draw_circle(proj.0, proj.1, 2.0, Color::new(0.1, 0.1, 0.1, 1.0));
     }
 }
 
-fn draw_edges(edges: Vec<Edge>) {
+fn draw_edges(edges: Vec<(usize, usize)>, obj: &Object) {
     for e in edges.into_iter() {
-        
+        let a = obj.vertices[e.0].get_proj();
+        let b = obj.vertices[e.1].get_proj();
+        // println!("a: ({}, {}), b: ({}, {})", a.0, a.1, b.0, b.1);
+        draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.1, 0.1, 1.0));
     }
 }
 
@@ -98,7 +101,7 @@ async fn main() {
     let mut angle = Angle::new();
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
     loop {
-        clear_background(Color::new(0.6, 0.6, 0.6, 1.0));
+        clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
         let (x_pos, y_pos) = mouse_position();
         let new_size = (screen_width(), screen_height());
         if new_size != last_size {
@@ -108,18 +111,17 @@ async fn main() {
         draw_windows(&windows);
         cursor.conf.x = x_pos;
         cursor.conf.y = y_pos;
-        let mut scene_vertices: Vec<Vec4f> = Vec::new();
-        let mut scene_edges: Vec<Edge> = Vec::new();
+        angle.xz += 0.01;
+        // let mut scene_vertices: Vec<Vec4f> = Vec::new();
         let d = dist(Vec4f::new0(), camera.c);
-        for obj in (&objects).into_iter() {
-            for v in &obj.vertices {
-                scene_vertices.push(v.clone().calc(&angle, d, &windows.main));
+        for obj in (&mut objects).iter_mut() {
+            obj.calc_vertices(&angle, d, &windows.main);
+            if let Some(local_edges) = &obj.edges {
+                draw_edges(local_edges.clone(), obj);
             }
-            for e in &obj.edges {
-                scene_edges.push(e.clone());
-            }
+            draw_vertices(obj.vertices.clone());
         }
-        draw_vertices(scene_vertices, &angle, dist(Vec4f::new0(), camera.c));
+        // draw_vertices(scene_vertices);
         draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
         next_frame().await
     }
