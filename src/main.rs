@@ -138,7 +138,6 @@ async fn main() {
         draw_windows(&windows);
         cursor.conf.x = x_pos;
         cursor.conf.y = y_pos;
-        angle.xz += 0.01;
         // let mut scene_vertices: Vec<Vec4f> = Vec::new();
         let d = dist(Vec4f::new0(), camera.c);
         for obj in (&mut objects).iter_mut() {
