@@ -133,6 +133,7 @@ async fn main() {
     let (mut x_pos, mut y_pos) = mouse_position();
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
+        let scroll_delta = mouse_wheel().1;
         x_last = x_pos;
         y_last = y_pos;
         match mouse_position() {
@@ -144,15 +145,27 @@ async fn main() {
             last_size = new_size;
         }
         if is_mouse_button_down(MouseButton::Left) {
-            let xw_delta = (x_pos - x_last) / 100.0;
-            let yw_delta = (y_pos - y_last) / 100.0;
-            angle.yw = (angle.yw + yw_delta) % (2.0 * PI);
-            // println!("{}", angle.yw);
-            if (PI > angle.yw && angle.yw > PI / 2.0) || (-PI < angle.yw && angle.yw < -PI / 2.0) {
-                angle.xw = (angle.xw - xw_delta) % (2.0 * PI);
+            if is_key_down(KeyCode::LeftShift) {
+                let xz_delta = (x_pos - x_last) / 80.0;
+                let yz_delta = (y_pos - y_last) / 80.0;
+                angle.yz = (angle.yz + yz_delta) % (2.0 * PI);
+                if (PI * 1.5 > angle.yz && angle.yz > PI / 2.0) || (-PI * 1.5 < angle.yz && angle.yz < -PI / 2.0) {
+                    angle.xz = (angle.xz - xz_delta) % (2.0 * PI);
+                } else {
+                    angle.xz = (angle.xz + xz_delta) % (2.0 * PI);
+                }
             } else {
-                angle.xw = (angle.xw + xw_delta) % (2.0 * PI);
+                let xw_delta = (x_pos - x_last) / 80.0;
+                let yw_delta = (y_pos - y_last) / 80.0;
+                angle.yw = (angle.yw + yw_delta) % (2.0 * PI);
+                if (PI * 1.5 > angle.yw && angle.yw > PI / 2.0) || (-PI * 1.5 < angle.yw && angle.yw < -PI / 2.0) {
+                    angle.xw = (angle.xw - xw_delta) % (2.0 * PI);
+                } else {
+                    angle.xw = (angle.xw + xw_delta) % (2.0 * PI);
+                }
             }
+            angle.zw += scroll_delta / 100.0;
+            println!("\n{}", angle);
         }
         draw_windows(&windows);
         cursor.conf.x = x_pos;

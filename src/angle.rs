@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 pub struct Angle {
     pub xy: f32,
     pub xz: f32,
@@ -17,5 +19,11 @@ impl Angle {
             yw: 0.0,
             zw: 0.0,
         }
+    }
+}
+
+impl Display for Angle {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "xy: {}\nxz: {}\nxw: {}\nyz: {}\nyw: {}\nzw: {}", self.xy, self.xz, self.xw, self.yz, self.yw, self.zw)
     }
 }
