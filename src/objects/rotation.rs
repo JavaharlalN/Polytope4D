@@ -69,96 +69,88 @@ impl Vec4f {
     }
 }
 
-impl Edge {
+impl Object {
     pub fn rotated_xy(self, angle: &f32) -> Self {
-        Edge::new (
-            self.a.rotated_xy(angle),
-            self.b.rotated_xy(angle)
-        )
+        let mut vertices = vec![];
+        for v in self.vertices.into_iter() {
+            vertices.push(v.rotated_xy(angle));
+        }
+        Object {
+            vertices,
+            edges: self.edges.clone(),
+            faces: self.faces.clone(),
+            cells: self.cells.clone(),
+            name: self.name.clone(),
+        }
     }
 
     pub fn rotated_xz(self, angle: &f32) -> Self {
-        Edge::new (
-            self.a.rotated_xz(angle),
-            self.b.rotated_xz(angle)
-        )
+        let mut vertices = vec![];
+        for v in self.vertices.into_iter() {
+            vertices.push(v.rotated_xz(angle));
+        }
+        Object {
+            vertices,
+            edges: self.edges.clone(),
+            faces: self.faces.clone(),
+            cells: self.cells.clone(),
+            name: self.name.clone(),
+        }
     }
 
     pub fn rotated_xw(self, angle: &f32) -> Self {
-        Edge::new (
-            self.a.rotated_xw(angle),
-            self.b.rotated_xw(angle)
-        )
+        let mut vertices = vec![];
+        for v in self.vertices.into_iter() {
+            vertices.push(v.rotated_xw(angle));
+        }
+        Object {
+            vertices,
+            edges: self.edges.clone(),
+            faces: self.faces.clone(),
+            cells: self.cells.clone(),
+            name: self.name.clone(),
+        }
     }
 
     pub fn rotated_yz(self, angle: &f32) -> Self {
-        Edge::new (
-            self.a.rotated_yz(angle),
-            self.b.rotated_yz(angle)
-        )
+        let mut vertices = vec![];
+        for v in self.vertices.into_iter() {
+            vertices.push(v.rotated_yz(angle));
+        }
+        Object {
+            vertices,
+            edges: self.edges.clone(),
+            faces: self.faces.clone(),
+            cells: self.cells.clone(),
+            name: self.name.clone(),
+        }
     }
 
     pub fn rotated_yw(self, angle: &f32) -> Self {
-        Edge::new (
-            self.a.rotated_yw(angle),
-            self.b.rotated_yw(angle)
-        )
+        let mut vertices = vec![];
+        for v in self.vertices.into_iter() {
+            vertices.push(v.rotated_yw(angle));
+        }
+        Object {
+            vertices,
+            edges: self.edges.clone(),
+            faces: self.faces.clone(),
+            cells: self.cells.clone(),
+            name: self.name.clone(),
+        }
     }
 
     pub fn rotated_zw(self, angle: &f32) -> Self {
-        Edge::new (
-            self.a.rotated_zw(angle),
-            self.b.rotated_zw(angle)
-        )
-    }
-}
-
-impl Face {
-    pub fn rotated_xy(self, angle: &f32) -> Self {
-        Face::from_verts(vec![
-            self.vertices[0].rotated_xy(angle),
-            self.vertices[1].rotated_xy(angle),
-            self.vertices[2].rotated_xy(angle),
-        ])
-    }
-
-    pub fn rotated_xz(self, angle: &f32) -> Self {
-        Face::from_verts(vec![
-            self.vertices[0].rotated_xz(angle),
-            self.vertices[1].rotated_xz(angle),
-            self.vertices[2].rotated_xz(angle),
-        ])
-    }
-
-    pub fn rotated_xw(self, angle: &f32) -> Self {
-        Face::from_verts(vec![
-            self.vertices[0].rotated_xw(angle),
-            self.vertices[1].rotated_xw(angle),
-            self.vertices[2].rotated_xw(angle),
-        ])
-    }
-
-    pub fn rotated_yz(self, angle: &f32) -> Self {
-        Face::from_verts(vec![
-            self.vertices[0].rotated_yz(angle),
-            self.vertices[1].rotated_yz(angle),
-            self.vertices[2].rotated_yz(angle),
-        ])
-    }
-
-    pub fn rotated_yw(self, angle: &f32) -> Self {
-        Face::from_verts(vec![
-            self.vertices[0].rotated_yw(angle),
-            self.vertices[1].rotated_yw(angle),
-            self.vertices[2].rotated_yw(angle),
-        ])
-    }
-
-    pub fn rotated_zw(self, angle: &f32) -> Self {
-        Face::from_verts(vec![
-            self.vertices[0].rotated_zw(angle),
-            self.vertices[1].rotated_zw(angle),
-            self.vertices[2].rotated_zw(angle),
-        ])
+        let mut vertices = vec![];
+        for v in self.vertices.into_iter() {
+            vertices.push(v.rotated_zw(angle));
+        }
+        Object {
+            vertices,
+            edges: self.edges.clone(),
+            faces: self.faces.clone(),
+            cells: self.cells.clone(),
+            name: self.name.clone(),
+        }
     }
 }

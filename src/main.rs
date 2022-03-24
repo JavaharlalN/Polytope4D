@@ -18,9 +18,12 @@ mod angle;
 pub mod objects;
 pub mod window;
 use angle::*;
+use macroquad::prelude::Texture2D;
 use macroquad::prelude::draw_rectangle;
 use macroquad::prelude::clear_background;
 use macroquad::prelude::Color;
+use macroquad::prelude::draw_rectangle_lines;
+use macroquad::prelude::draw_texture;
 use macroquad::prelude::screen_width;
 use macroquad::prelude::screen_height;
 use macroquad::prelude::draw_line;
@@ -86,11 +89,35 @@ fn draw_edges(edges: Vec<(usize, usize)>, obj: &Object) {
     }
 }
 
+fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool) {
+    draw_texture(
+        texture,
+        x,
+        y,
+        Color::new(1.0, 1.0, 1.0, 1.0)
+    );
+    draw_rectangle_lines(
+        x,
+        y,
+        w,
+        h,
+        if selected { 6.0 } else { 4.0 },
+        Color::new(0.4, 0.4, 0.4, 1.0)
+    );
+}
+
 #[macroquad::main("Polytope 4D")]
 async fn main() {
     unsafe {
         sapp::sapp_show_mouse(false);
     }
+    let selection_type_buttons = vec!(
+        Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None),
+        Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None),
+        Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None),
+        Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None),
+    );
+    let selection_type_id = 0;
     let mut windows = WindowGroup{
         main: MainWindow::new(screen_width(), screen_height()),
         scene: SceneWindow::new(screen_width(), screen_height()),
@@ -123,6 +150,16 @@ async fn main() {
         }
         // draw_vertices(scene_vertices);
         draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
+        for i in 0..4 {
+            draw_button(
+                windows.main.config.w - 114.0 + 28.0 * i as f32,
+                0.0,
+                30.0,
+                30.0,
+                selection_type_buttons[i],
+                selection_type_id == i,
+            );
+        }
         next_frame().await
     }
 }
