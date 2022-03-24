@@ -1,4 +1,4 @@
-const STEPS: u8 = 10;
+// const STEPS: u8 = 10;
 
 #[derive(Copy, Clone)]
 pub struct Config {

@@ -6,16 +6,46 @@ pub enum ALIGN {
     RIGHT,
 }
 
+#[derive(Debug, Clone)]
 pub struct Button {
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
-    form: String,
+    pub x: f32,
+    pub y: f32,
+    pub w: f32,
+    pub h: f32,
+    pub form: String,
 }
 
-pub struct ObjectField<ParentType> {
-    parent: ParentType,
-    y:f32,
-    object: Object,
+#[derive(Debug, Clone)]
+pub struct RadioButton {
+    pub x: f32,
+    pub y: f32,
+    pub w: f32,
+    pub h: f32,
+    pub sprite: Vec<u8>,
+    pub rect: bool,
+    pub checked: bool,
+}
+
+pub struct RadioButtonGroup {
+    pub buttons: Vec<RadioButton>,
+    pub index: usize,
+}
+
+impl RadioButtonGroup {
+    pub fn new(buttons: Option<Vec<RadioButton>>) -> Self {
+        RadioButtonGroup {
+            buttons: if let Some(b) = buttons { b } else { vec![] },
+            index: 0,
+        }
+    }
+
+    pub fn add(&mut self, btn: RadioButton) {
+        self.buttons.push(btn);
+    }
+}
+
+pub struct ObjectField<T> {
+    pub parent: T,
+    pub y:f32,
+    pub object: Object,
 }

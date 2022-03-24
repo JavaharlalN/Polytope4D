@@ -1,22 +1,18 @@
 use crate::angle::Angle;
 use crate::window::MainWindow;
-
-use super::Face;
-use super::Cell;
-use super::Edge;
 use super::Vec4f;
 
 pub struct Object {
     pub vertices: Vec<Vec4f>,
     pub edges: Option<Vec<(usize, usize)>>,
     pub faces: Option<(
-        Vec<usize>, // vertices
-        Vec<usize>, // edges
+        (usize, usize, usize), // vertices
+        (usize, usize, usize), // edges
     )>,
     pub cells: Option<(
-        Vec<usize>, // vertices
-        Vec<usize>, // edges
-        Vec<usize>, // faces
+        (usize, usize, usize, usize), // vertices
+        (usize, usize, usize, usize, usize, usize), // edges
+        (usize, usize, usize, usize), // faces
     )>,
     pub name: Option<String>,
 }
@@ -82,8 +78,8 @@ impl Object {
                 (13, 15),
                 (14, 15),
             ]),
-            faces: Some((vec![], vec![])),
-            cells: Some((vec![], vec![], vec![])),
+            faces: None,
+            cells: None,
             name: Some("Tessteract".to_string()),
         }
     }

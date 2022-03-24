@@ -1,8 +1,8 @@
-use super::ObjectField;
+use super::{ObjectField, Button};
 use crate::objects::Object;
 
 #[derive(Debug, Copy, Clone)]
-pub enum HINT_ALIGN {
+pub enum HintAlign {
     LEFT,
     RIGHT,
     TOP,
@@ -19,7 +19,7 @@ pub enum WINDOWS {
 pub struct HintArea {
     pub w: f32,
     pub h: f32,
-    pub align: HINT_ALIGN,
+    pub align: HintAlign,
     pub window: u16,
     pub busy: bool,
     pub visible: bool,
@@ -39,6 +39,7 @@ pub struct Parameters {
 #[derive(Debug, Clone)]
 pub struct MainWindow {
     pub config: Parameters,
+    pub buttons: Vec<Button>,
 }
 
 pub struct SceneWindow {
@@ -76,7 +77,8 @@ impl MainWindow {
                 grabbed: false,
                 name: "Main".to_string(),
                 id: WINDOWS::MAIN as u8,
-            }
+            },
+            buttons: vec![],
         }
     }
 
@@ -87,20 +89,20 @@ impl MainWindow {
 }
 
 impl HintArea {
-    pub fn new(side: f32, win_type: WINDOWS, align: HINT_ALIGN) -> HintArea {
+    pub fn new(side: f32, win_type: WINDOWS, align: HintAlign) -> HintArea {
 
         HintArea{
             w: match align {
-                HINT_ALIGN::LEFT => side,
-                HINT_ALIGN::RIGHT => side,
+                HintAlign::LEFT => side,
+                HintAlign::RIGHT => side,
                 _ => 200.0
             },
             h: match align {
-                HINT_ALIGN::BOTTOM => side,
-                HINT_ALIGN::TOP => side,
+                HintAlign::BOTTOM => side,
+                HintAlign::TOP => side,
                 _ => 200.0
             },
-            align: align,
+            align,
             window: win_type as u16,
             busy: false,
             visible: false,
@@ -122,10 +124,10 @@ impl SceneWindow {
             },
             objects: Vec::new(),
             fields: Vec::new(),
-            left_area: HintArea::new(50.0, WINDOWS::SCENE, HINT_ALIGN::LEFT),
-            right_area: HintArea::new(50.0, WINDOWS::SCENE, HINT_ALIGN::RIGHT),
-            bottom_area: HintArea::new(50.0, WINDOWS::SCENE, HINT_ALIGN::BOTTOM),
-            top_area: HintArea::new(50.0, WINDOWS::SCENE, HINT_ALIGN::TOP),
+            left_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::LEFT),
+            right_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::RIGHT),
+            bottom_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::BOTTOM),
+            top_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::TOP),
         }
     }
 }
