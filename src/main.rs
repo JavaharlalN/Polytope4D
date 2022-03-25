@@ -17,6 +17,8 @@ mod cursor;
 mod angle;
 pub mod objects;
 pub mod window;
+use std::f32::consts::PI;
+
 use angle::*;
 use macroquad::prelude::Texture2D;
 use macroquad::prelude::draw_rectangle;
@@ -127,18 +129,47 @@ async fn main() {
     let mut objects = vec![Object::tesseract()];
     let mut angle = Angle::new();
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
+    let (mut x_last, mut y_last) = mouse_position();
+    let (mut x_pos, mut y_pos) = mouse_position();
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
-        let (x_pos, y_pos) = mouse_position();
+        let scroll_delta = mouse_wheel().1;
+        x_last = x_pos;
+        y_last = y_pos;
+        match mouse_position() {
+            (x, y) => { x_pos = x; y_pos = y }
+        }
         let new_size = (screen_width(), screen_height());
         if new_size != last_size {
             resize_event(&mut windows);
             last_size = new_size;
         }
+        if is_mouse_button_down(MouseButton::Left) {
+            if is_key_down(KeyCode::LeftShift) {
+                let xz_delta = (x_pos - x_last) / 80.0;
+                let yz_delta = (y_pos - y_last) / 80.0;
+                angle.yz = (angle.yz + yz_delta) % (2.0 * PI);
+                if (PI * 1.5 > angle.yz && angle.yz > PI / 2.0) || (-PI * 1.5 < angle.yz && angle.yz < -PI / 2.0) {
+                    angle.xz = (angle.xz - xz_delta) % (2.0 * PI);
+                } else {
+                    angle.xz = (angle.xz + xz_delta) % (2.0 * PI);
+                }
+            } else {
+                let xw_delta = (x_pos - x_last) / 80.0;
+                let yw_delta = (y_pos - y_last) / 80.0;
+                angle.yw = (angle.yw + yw_delta) % (2.0 * PI);
+                if (PI * 1.5 > angle.yw && angle.yw > PI / 2.0) || (-PI * 1.5 < angle.yw && angle.yw < -PI / 2.0) {
+                    angle.xw = (angle.xw - xw_delta) % (2.0 * PI);
+                } else {
+                    angle.xw = (angle.xw + xw_delta) % (2.0 * PI);
+                }
+            }
+            angle.zw += scroll_delta / 100.0;
+            println!("\n{}", angle);
+        }
         draw_windows(&windows);
         cursor.conf.x = x_pos;
         cursor.conf.y = y_pos;
-        angle.xz += 0.01;
         // let mut scene_vertices: Vec<Vec4f> = Vec::new();
         let d = dist(Vec4f::new0(), camera.c);
         for obj in (&mut objects).iter_mut() {
