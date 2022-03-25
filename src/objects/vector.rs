@@ -82,6 +82,14 @@ impl Vec4f {
         self.proj_y = Some(v.1);
     }
 
+    pub fn select(&mut self) {
+        self.selected = true;
+    }
+
+    pub fn deselect(&mut self) {
+        self.selected = false;
+    }
+
     pub fn with_proj(self, v: (f32, f32)) -> Self {
         Vec4f {
             x: self.x,
