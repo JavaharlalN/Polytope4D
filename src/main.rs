@@ -57,7 +57,8 @@ fn draw_vertices(vertices: Vec<Vec4f>) {
     for v in vertices.into_iter() {
         if let Some(proj) = v.get_proj() {
             if v.selected {
-                draw_circle(proj.0, proj.1, 2.0, Color::new(0.0, 0.8, 0.1, 1.0));
+                draw_circle(proj.0, proj.1, 3.0, Color::new(0.0, 0.2, 0.4, 1.0));
+                draw_circle(proj.0, proj.1, 2.0, Color::new(0.0, 0.6, 1.0, 1.0));
             } else {
                 draw_circle(proj.0, proj.1, 2.0, Color::new(0.1, 0.1, 0.1, 1.0));
             }
@@ -102,11 +103,16 @@ fn find_closest_vertice(x: f32, y: f32, vertices: &mut Vec<Vec4f>) -> Option<usi
             } else { min_dist = Some(d); closest = Some(i) }
         }
     }
-    println!("{}\n", closest.unwrap());
     if let Some(d) = min_dist {
         if d < MAX_DIST { closest }
         else { None }
     } else { None }
+}
+
+fn clear_selection_vertices(vertices: &mut Vec<Vec4f>, index: usize) {
+    for (i, v) in vertices.iter_mut().enumerate() {
+        v.selected = index == i;
+    }
 }
 
 #[macroquad::main("Polytope 4D")]
@@ -133,7 +139,7 @@ async fn main() {
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
     let mut click_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
-    let mut selected_vertices: Vec<Vec4f> = vec![];
+    // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
         let scroll_delta = mouse_wheel().1;
@@ -164,10 +170,14 @@ async fn main() {
             }
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                for obj in objects.iter_mut() {
-                    if let Some(i) = find_closest_vertice(x_pos, y_pos, &mut obj.vertices) {
-                        println!("{}", i);
-                        if let Some(v) = obj.vertices.get_mut(i) { v.selected = true; }
+                for (i, obj) in objects.iter_mut().enumerate() {
+                    if let Some(index) = find_closest_vertice(x_pos, y_pos, &mut obj.vertices) {
+                        let v = obj.vertices.get_mut(index).unwrap();
+                        if is_key_down(KeyCode::LeftShift) {
+                            v.selected = !v.selected;
+                        } else {
+                            clear_selection_vertices(&mut obj.vertices, index);
+                        }
                     }
                 }
             } else {
