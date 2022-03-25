@@ -128,49 +128,46 @@ async fn main() {
     let mut last_size = (screen_width(), screen_height());
     let mut objects = vec![Object::tesseract()];
     let mut angle = Angle::new();
+    let mut is_lmb_down = false;
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
-    let (mut x_last, mut y_last) = mouse_position();
     let (mut x_pos, mut y_pos) = mouse_position();
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
         let scroll_delta = mouse_wheel().1;
-        x_last = x_pos;
-        y_last = y_pos;
-        match mouse_position() {
-            (x, y) => { x_pos = x; y_pos = y }
-        }
+        let x_last = x_pos;
+        let y_last = y_pos;
+        match mouse_position() { (x, y) => { x_pos = x; y_pos = y } }
         let new_size = (screen_width(), screen_height());
         if new_size != last_size {
             resize_event(&mut windows);
             last_size = new_size;
         }
         if is_mouse_button_down(MouseButton::Left) {
+            if !is_lmb_down { // mouse down event
+                is_lmb_down = true;
+            }
+            let x_delta = (x_pos - x_last) / 200.0;
+            let y_delta = (y_pos - y_last) / 200.0;
             if is_key_down(KeyCode::LeftShift) {
-                let xz_delta = (x_pos - x_last) / 80.0;
-                let yz_delta = (y_pos - y_last) / 80.0;
-                angle.yz = (angle.yz + yz_delta) % (2.0 * PI);
-                if (PI * 1.5 > angle.yz && angle.yz > PI / 2.0) || (-PI * 1.5 < angle.yz && angle.yz < -PI / 2.0) {
-                    angle.xz = (angle.xz - xz_delta) % (2.0 * PI);
-                } else {
-                    angle.xz = (angle.xz + xz_delta) % (2.0 * PI);
-                }
+                angle.yz += y_delta;
+                angle.xz += x_delta;
             } else {
-                let xw_delta = (x_pos - x_last) / 80.0;
-                let yw_delta = (y_pos - y_last) / 80.0;
-                angle.yw = (angle.yw + yw_delta) % (2.0 * PI);
-                if (PI * 1.5 > angle.yw && angle.yw > PI / 2.0) || (-PI * 1.5 < angle.yw && angle.yw < -PI / 2.0) {
-                    angle.xw = (angle.xw - xw_delta) % (2.0 * PI);
-                } else {
-                    angle.xw = (angle.xw + xw_delta) % (2.0 * PI);
-                }
+                angle.yw += y_delta;
+                angle.xw += x_delta;
             }
             angle.zw += scroll_delta / 100.0;
-            println!("\n{}", angle);
+        } else if is_lmb_down { // mouse up event
+            for obj in objects.iter_mut() {
+                for v in obj.vertices.iter_mut() {
+                    v.freeze(&angle);
+                }
+            }
+            angle.clear();
+            is_lmb_down = false;
         }
         draw_windows(&windows);
         cursor.conf.x = x_pos;
         cursor.conf.y = y_pos;
-        // let mut scene_vertices: Vec<Vec4f> = Vec::new();
         let d = dist(Vec4f::new0(), camera.c);
         for obj in (&mut objects).iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
@@ -179,7 +176,6 @@ async fn main() {
             }
             draw_vertices(obj.vertices.clone());
         }
-        // draw_vertices(scene_vertices);
         draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
         for i in 0..4 {
             draw_button(

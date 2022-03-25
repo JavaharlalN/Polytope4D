@@ -103,6 +103,15 @@ impl Vec4f {
         self.set_proj((x, y));
         self.with_proj((x, y))
     }
+
+    pub fn freeze(&mut self, a: &Angle) {
+        self.rotate_xy(&a.xy)
+            .rotate_xz(&a.xz)
+            .rotate_xw(&a.xw)
+            .rotate_yz(&a.yz)
+            .rotate_yw(&a.yw)
+            .rotate_zw(&a.zw);
+    }
 }
 
 impl Add for Vec4f {

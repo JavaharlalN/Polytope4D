@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 
+#[derive(Debug, Clone)]
 pub struct Angle {
     pub xy: f32,
     pub xz: f32,
@@ -19,6 +20,15 @@ impl Angle {
             yw: 0.0,
             zw: 0.0,
         }
+    }
+
+    pub fn clear(&mut self) {
+        self.xy = 0.0;
+        self.xz = 0.0;
+        self.xw = 0.0;
+        self.yz = 0.0;
+        self.yw = 0.0;
+        self.zw = 0.0;
     }
 }
 
