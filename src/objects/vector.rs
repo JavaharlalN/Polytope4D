@@ -21,6 +21,7 @@ pub struct Vec4f {
     pub w: f32,
     proj_x: f32,
     proj_y: f32,
+    pub selected: bool,
 }
 
 impl Vec4f {
@@ -32,6 +33,7 @@ impl Vec4f {
             w,
             proj_x: 0.0,
             proj_y: 0.0,
+            selected: false,
         }
     }
 
@@ -82,6 +84,7 @@ impl Vec4f {
             w: self.w,
             proj_x: v.0,
             proj_y: v.1,
+            selected: false,
         }
     }
 

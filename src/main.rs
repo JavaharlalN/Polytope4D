@@ -17,8 +17,6 @@ mod cursor;
 mod angle;
 pub mod objects;
 pub mod window;
-use std::f32::consts::PI;
-
 use angle::*;
 use macroquad::prelude::Texture2D;
 use macroquad::prelude::draw_rectangle;
@@ -36,6 +34,9 @@ use macroquad::input::*;
 use cursor::*;
 use objects::*;
 use window::*;
+use std::time::Instant;
+
+const CLICK_TIMEOUT: u128 = 150;
 
 fn draw_windows<'a>(windows: &'a WindowGroup) {
     draw_rectangle(
@@ -45,30 +46,6 @@ fn draw_windows<'a>(windows: &'a WindowGroup) {
         windows.main.config.h,
         Color::new(0.3, 0.3, 0.3, 0.5),
     );
-}
-
-fn draw_bg() {
-    clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
-    for i in 0..(screen_width() as i32 / 50) {
-        for k in 0..(screen_height() as i32 / 50) {
-            draw_line(
-                (i * 50) as f32,
-                0.0,
-                (i * 50) as f32,
-                screen_height(),
-                1.0,
-                Color::new(0.25, 0.25, 0.25, 1.0),
-            );
-            draw_line(
-                0.0,
-                (k * 50) as f32,
-                screen_width(),
-                (k * 50) as f32,
-                1.0,
-                Color::new(0.25, 0.25, 0.25, 1.0),
-            );
-        }
-    }
 }
 
 fn resize_event<'a>(windows: &'a mut WindowGroup) {
@@ -130,7 +107,9 @@ async fn main() {
     let mut angle = Angle::new();
     let mut is_lmb_down = false;
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
+    let mut click_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
+    let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
         let scroll_delta = mouse_wheel().1;
@@ -143,24 +122,30 @@ async fn main() {
             last_size = new_size;
         }
         if is_mouse_button_down(MouseButton::Left) {
-            if !is_lmb_down { // mouse down event
+            if !is_lmb_down { // lmb down event
                 is_lmb_down = true;
+                click_timer = Instant::now();
             }
-            let x_delta = (x_pos - x_last) / 200.0;
-            let y_delta = (y_pos - y_last) / 200.0;
-            if is_key_down(KeyCode::LeftShift) {
-                angle.yz += y_delta;
-                angle.xz += x_delta;
-            } else {
-                angle.yw += y_delta;
-                angle.xw += x_delta;
+            if click_timer.elapsed().as_millis() >= CLICK_TIMEOUT {
+                let x_delta = (x_pos - x_last) / 200.0;
+                let y_delta = (y_pos - y_last) / 200.0;
+                if is_key_down(KeyCode::LeftShift) {
+                    angle.yz += y_delta;
+                    angle.xz += x_delta;
+                } else {
+                    angle.yw += y_delta;
+                    angle.xw += x_delta;
+                }
+                angle.zw += scroll_delta / 100.0;
             }
-            angle.zw += scroll_delta / 100.0;
-        } else if is_lmb_down { // mouse up event
+        } else if is_lmb_down { // lmb up event
             for obj in objects.iter_mut() {
                 for v in obj.vertices.iter_mut() {
                     v.freeze(&angle);
                 }
+            }
+            if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
+                println!("click");
             }
             angle.clear();
             is_lmb_down = false;
