@@ -37,6 +37,7 @@ use window::*;
 use std::time::Instant;
 
 const CLICK_TIMEOUT: u128 = 150;
+const MAX_DIST: f32 = 20.0;
 
 fn draw_windows<'a>(windows: &'a WindowGroup) {
     draw_rectangle(
@@ -54,15 +55,20 @@ fn resize_event<'a>(windows: &'a mut WindowGroup) {
 
 fn draw_vertices(vertices: Vec<Vec4f>) {
     for v in vertices.into_iter() {
-        let proj = v.get_proj();
-        draw_circle(proj.0, proj.1, 2.0, Color::new(0.1, 0.1, 0.1, 1.0));
+        if let Some(proj) = v.get_proj() {
+            if v.selected {
+                draw_circle(proj.0, proj.1, 2.0, Color::new(0.0, 0.8, 0.1, 1.0));
+            } else {
+                draw_circle(proj.0, proj.1, 2.0, Color::new(0.1, 0.1, 0.1, 1.0));
+            }
+        }
     }
 }
 
 fn draw_edges(edges: Vec<(usize, usize)>, obj: &Object) {
     for e in edges.into_iter() {
-        let a = obj.vertices[e.0].get_proj();
-        let b = obj.vertices[e.1].get_proj();
+        let a = obj.vertices[e.0].get_proj().unwrap();
+        let b = obj.vertices[e.1].get_proj().unwrap();
         // println!("a: ({}, {}), b: ({}, {})", a.0, a.1, b.0, b.1);
         draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.1, 0.1, 1.0));
     }
@@ -83,6 +89,24 @@ fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: boo
         if selected { 6.0 } else { 4.0 },
         Color::new(0.4, 0.4, 0.4, 1.0)
     );
+}
+
+fn find_closest_vertice(x: f32, y: f32, vertices: &mut Vec<Vec4f>) -> Option<usize> {
+    let mut closest = None;
+    let mut min_dist = None;
+    for (i, v) in vertices.iter_mut().enumerate() {
+        if let Some((px, py)) = v.get_proj() {
+            let d = dist2d(x, y, px, py);
+            if let Some(min_d) = min_dist {
+                if d < min_d { min_dist = Some(d); closest = Some(i)}
+            } else { min_dist = Some(d); closest = Some(i) }
+        }
+    }
+    println!("{}\n", closest.unwrap());
+    if let Some(d) = min_dist {
+        if d < MAX_DIST { closest }
+        else { None }
+    } else { None }
 }
 
 #[macroquad::main("Polytope 4D")]
@@ -139,13 +163,19 @@ async fn main() {
                 angle.zw += scroll_delta / 100.0;
             }
         } else if is_lmb_down { // lmb up event
-            for obj in objects.iter_mut() {
-                for v in obj.vertices.iter_mut() {
-                    v.freeze(&angle);
-                }
-            }
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                println!("click");
+                for obj in objects.iter_mut() {
+                    if let Some(i) = find_closest_vertice(x_pos, y_pos, &mut obj.vertices) {
+                        println!("{}", i);
+                        if let Some(v) = obj.vertices.get_mut(i) { v.selected = true; }
+                    }
+                }
+            } else {
+                for obj in objects.iter_mut() {
+                    for v in obj.vertices.iter_mut() {
+                        v.freeze(&angle);
+                    }
+                }
             }
             angle.clear();
             is_lmb_down = false;

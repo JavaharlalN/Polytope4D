@@ -13,14 +13,18 @@ pub fn dist(v1: Vec4f, v2: Vec4f) -> f32 {
     ((v1.x - v2.x).powf(2.0) + (v1.y - v2.y).powf(2.0) + (v1.z - v2.z).powf(2.0) + (v1.w - v2.w).powf(2.0)).sqrt()
 }
 
+pub fn dist2d(x1: f32, y1: f32, x2: f32, y2: f32) -> f32 {
+    ((x2 - x1).powf(2.0) + (y2 - y1).powf(2.0)).sqrt()
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Vec4f {
     pub x: f32,
     pub y: f32,
     pub z: f32,
     pub w: f32,
-    proj_x: f32,
-    proj_y: f32,
+    proj_x: Option<f32>,
+    proj_y: Option<f32>,
     pub selected: bool,
 }
 
@@ -31,8 +35,8 @@ impl Vec4f {
             y,
             z,
             w,
-            proj_x: 0.0,
-            proj_y: 0.0,
+            proj_x: None,
+            proj_y: None,
             selected: false,
         }
     }
@@ -67,13 +71,15 @@ impl Vec4f {
         )
     }
 
-    pub fn get_proj(self) -> (f32, f32) {
-        (self.proj_x, self.proj_y)
+    pub fn get_proj(self) -> Option<(f32, f32)> {
+        if let Some((Some(x), Some(y))) = Some((self.proj_x, self.proj_y)) {
+            Some((x, y))
+        } else { None }
     }
 
     pub fn set_proj(&mut self, v: (f32, f32)) {
-        self.proj_x = v.0;
-        self.proj_y = v.1;
+        self.proj_x = Some(v.0);
+        self.proj_y = Some(v.1);
     }
 
     pub fn with_proj(self, v: (f32, f32)) -> Self {
@@ -82,8 +88,8 @@ impl Vec4f {
             y: self.y,
             z: self.z,
             w: self.w,
-            proj_x: v.0,
-            proj_y: v.1,
+            proj_x: Some(v.0),
+            proj_y: Some(v.1),
             selected: false,
         }
     }
