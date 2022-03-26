@@ -272,22 +272,16 @@ async fn main() {
                     if selection_type_buttons[0].1 {
                         if let Some(index) = find_closest_vertice(x_pos, y_pos, &obj.vertices) {
                             let v = obj.vertices.get_mut(index).unwrap();
-                            if is_key_down(KeyCode::LeftShift) {
-                                v.selected = !v.selected;
-                            } else {
-                                clear_selection_vertices(&mut obj.vertices, index);
-                            }
+                            if is_key_down(KeyCode::LeftShift) { v.selected = !v.selected; }
+                            else { clear_selection_vertices(&mut obj.vertices, index); }
                             break;
                         }
                     }
                     if selection_type_buttons[1].1 {
                         if let Some(index) = find_closest_edge(x_pos, y_pos, &obj) {
                             let e = obj.edges.get_mut(index).unwrap();
-                            if is_key_down(KeyCode::LeftShift) {
-                                e.2 = !e.2;
-                            } else {
-                                clear_selection_edges(&mut obj.edges, index);
-                            }
+                            if is_key_down(KeyCode::LeftShift) { e.2 = !e.2; }
+                            else { clear_selection_edges(&mut obj.edges, index); }
                         }
                     }
                 }
