@@ -58,8 +58,8 @@ impl Cursor {
         xb: f32, yb: f32,
         w: f32, h: f32,
     ) -> bool {
-        self.conf.x >= xb && self.conf.x <= xb + w &&
-        self.conf.y >= yb && self.conf.y <= yb + h 
+        self.conf.x >= xb && self.conf.x < xb + w &&
+        self.conf.y >= yb && self.conf.y < yb + h 
     }
 
     pub fn next(&mut self) {

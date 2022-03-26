@@ -80,21 +80,28 @@ fn draw_edges(obj: &Object) {
     }
 }
 
-fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool) {
+fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool, hover: bool) {
     draw_texture(
         texture,
         x,
         y,
         Color::new(1.0, 1.0, 1.0, 1.0)
     );
+    let thickness = if selected { 6.0 } else { 4.0 };
     draw_rectangle_lines(
-        x,
-        y,
-        w,
-        h,
-        if selected { 6.0 } else { 4.0 },
+        x, y, w, h,
+        thickness,
         Color::new(0.4, 0.4, 0.4, 1.0)
     );
+
+    if hover {
+        draw_rectangle_lines(
+            x + thickness / 2.0, y + thickness / 2.0,
+            w - thickness, h - thickness,
+            2.0,
+            Color::new(0.3, 0.3, 0.3, 1.0)
+        );
+    }
 }
 
 fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> {
@@ -158,11 +165,11 @@ async fn main() {
     unsafe {
         sapp::sapp_show_mouse(false);
     }
-    let selection_type_buttons = vec!(
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None), true),
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None), false),
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None), false),
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None), false),
+    let mut selection_type_buttons = vec!(
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None), true, false),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None), false, false),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None), false, false),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None), false, false),
     );
     let mut windows = WindowGroup{
         main: MainWindow::new(screen_width(), screen_height()),
@@ -207,7 +214,10 @@ async fn main() {
             }
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                for (i, obj) in objects.iter_mut().enumerate() {
+                for btn in selection_type_buttons.iter_mut() {
+                    btn.1 = btn.2;
+                }
+                for obj in objects.iter_mut() {
                     if let Some(index) = find_closest_vertice(x_pos, y_pos, &obj.vertices) {
                         let v = obj.vertices.get_mut(index).unwrap();
                         if is_key_down(KeyCode::LeftShift) {
@@ -246,6 +256,12 @@ async fn main() {
         }
         draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
         for i in 0..4 {
+            selection_type_buttons.get_mut(i).unwrap().2 = cursor.intersect_with_box(
+                windows.main.config.w - 114.0 + 28.0 * i as f32,
+                windows.main.config.y,
+                28.0,
+                28.0,
+            );
             draw_button(
                 windows.main.config.w - 114.0 + 28.0 * i as f32,
                 0.0,
@@ -253,6 +269,7 @@ async fn main() {
                 30.0,
                 selection_type_buttons[i].0,
                 selection_type_buttons[i].1,
+                selection_type_buttons[i].2,
             );
         }
         next_frame().await
