@@ -66,12 +66,17 @@ fn draw_vertices(vertices: Vec<Vec4f>) {
     }
 }
 
-fn draw_edges(edges: Vec<(usize, usize)>, obj: &Object) {
-    for e in edges.into_iter() {
+fn draw_edges(obj: &Object) {
+    for e in (&obj.edges).into_iter() {
         let a = obj.vertices[e.0].get_proj().unwrap();
         let b = obj.vertices[e.1].get_proj().unwrap();
         // println!("a: ({}, {}), b: ({}, {})", a.0, a.1, b.0, b.1);
-        draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.1, 0.1, 1.0));
+        if e.2 {
+            draw_line(a.0, a.1, b.0, b.1, 2.0, Color::new(0.1, 0.2, 0.4, 1.0));
+            draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.6, 1.0, 1.0));
+        } else {
+            draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.1, 0.1, 1.0));
+        }
     }
 }
 
@@ -92,12 +97,39 @@ fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: boo
     );
 }
 
-fn find_closest_vertice(x: f32, y: f32, vertices: &mut Vec<Vec4f>) -> Option<usize> {
+fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> {
     let mut closest = None;
     let mut min_dist = None;
-    for (i, v) in vertices.iter_mut().enumerate() {
+    for (i, v) in vertices.iter().enumerate() {
         if let Some((px, py)) = v.get_proj() {
             let d = dist2d(x, y, px, py);
+            if let Some(min_d) = min_dist {
+                if d < min_d { min_dist = Some(d); closest = Some(i)}
+            } else { min_dist = Some(d); closest = Some(i) }
+        }
+    }
+    if let Some(d) = min_dist {
+        if d < MAX_DIST { closest }
+        else { None }
+    } else { None }
+}
+
+fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4f>) -> Option<f32> {
+    if let (Some(a), Some(b)) = (vertices[pair.0].get_proj(), vertices[pair.1].get_proj()) {
+        let d1 = dist2d(a.0, a.1, b.0, b.1);
+        let d2 = dist2d(a.0, a.1, x, y);
+        let d3 = dist2d(x, y, b.0, b.1);
+        let s = (d1 + d2 + d3) / 2.0;
+        let heron = (s * (s - d1) * (s - d2) * (s - d3)).sqrt();
+        Some(heron / d1 * 2.0)
+    } else { None }
+}
+
+fn find_closest_edge(x: f32, y: f32, obj: &Object) -> Option<usize> {
+    let mut closest = None;
+    let mut min_dist = None;
+    for (i, e) in obj.edges.iter().enumerate() {
+        if let Some(d) = dist_to_edge(x, y, e, &obj.vertices) {
             if let Some(min_d) = min_dist {
                 if d < min_d { min_dist = Some(d); closest = Some(i)}
             } else { min_dist = Some(d); closest = Some(i) }
@@ -115,18 +147,23 @@ fn clear_selection_vertices(vertices: &mut Vec<Vec4f>, index: usize) {
     }
 }
 
+fn clear_selection_edges(edges: &mut Vec<(usize, usize, bool)>, index: usize) {
+    for (i, e) in edges.iter_mut().enumerate() {
+        e.2 = index == i;
+    }
+}
+
 #[macroquad::main("Polytope 4D")]
 async fn main() {
     unsafe {
         sapp::sapp_show_mouse(false);
     }
     let selection_type_buttons = vec!(
-        Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None),
-        Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None),
-        Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None),
-        Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None), true),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None), false),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None), false),
+        (Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None), false),
     );
-    let selection_type_id = 0;
     let mut windows = WindowGroup{
         main: MainWindow::new(screen_width(), screen_height()),
         scene: SceneWindow::new(screen_width(), screen_height()),
@@ -171,12 +208,20 @@ async fn main() {
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
                 for (i, obj) in objects.iter_mut().enumerate() {
-                    if let Some(index) = find_closest_vertice(x_pos, y_pos, &mut obj.vertices) {
+                    if let Some(index) = find_closest_vertice(x_pos, y_pos, &obj.vertices) {
                         let v = obj.vertices.get_mut(index).unwrap();
                         if is_key_down(KeyCode::LeftShift) {
                             v.selected = !v.selected;
                         } else {
                             clear_selection_vertices(&mut obj.vertices, index);
+                        }
+                    }
+                    if let Some(index) = find_closest_edge(x_pos, y_pos, &obj) {
+                        let e = obj.edges.get_mut(index).unwrap();
+                        if is_key_down(KeyCode::LeftShift) {
+                            e.2 = !e.2;
+                        } else {
+                            clear_selection_edges(&mut obj.edges, index);
                         }
                     }
                 }
@@ -196,9 +241,7 @@ async fn main() {
         let d = dist(Vec4f::new0(), camera.c);
         for obj in (&mut objects).iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
-            if let Some(local_edges) = &obj.edges {
-                draw_edges(local_edges.clone(), obj);
-            }
+            draw_edges(obj);
             draw_vertices(obj.vertices.clone());
         }
         draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
@@ -208,8 +251,8 @@ async fn main() {
                 0.0,
                 30.0,
                 30.0,
-                selection_type_buttons[i],
-                selection_type_id == i,
+                selection_type_buttons[i].0,
+                selection_type_buttons[i].1,
             );
         }
         next_frame().await
