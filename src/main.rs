@@ -37,6 +37,7 @@ use window::*;
 use std::time::Instant;
 
 const CLICK_TIMEOUT: u128 = 150;
+const CUR_TRANSFORM_TO: u128 = 20;
 const MAX_DIST: f32 = 20.0;
 
 fn draw_windows<'a>(windows: &'a WindowGroup) {
@@ -126,6 +127,8 @@ fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4
         let d1 = dist2d(a.0, a.1, b.0, b.1);
         let d2 = dist2d(a.0, a.1, x, y);
         let d3 = dist2d(x, y, b.0, b.1);
+        if d2.powi(2) > d1.powi(2) + d3.powi(2) { return None }
+        if d3.powi(2) > d1.powi(2) + d2.powi(2) { return None }
         let s = (d1 + d2 + d3) / 2.0;
         let heron = (s * (s - d1) * (s - d2) * (s - d3)).sqrt();
         Some(heron / d1 * 2.0)
@@ -160,6 +163,23 @@ fn clear_selection_edges(edges: &mut Vec<(usize, usize, bool)>, index: usize) {
     }
 }
 
+fn draw_cursor(cursor: &Cursor) {
+    // println!("{}", cursor.rect);
+    if cursor.rect {
+        draw_rectangle(cursor.conf.x, cursor.conf.y, cursor.conf.w, cursor.conf.h, Color::new(0.3, 0.3, 0.3, 1.0));
+    } else {
+        draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
+    }
+}
+
+fn get_buttons_enabled_count(buttons: &Vec<(Texture2D, bool, bool)>) -> i32 {
+    let mut counter = 0;
+    for b in buttons {
+        if b.1 { counter += 1; }
+    }
+    counter
+}
+
 #[macroquad::main("Polytope 4D")]
 async fn main() {
     unsafe {
@@ -182,6 +202,7 @@ async fn main() {
     let mut is_lmb_down = false;
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
     let mut click_timer = Instant::now();
+    let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
@@ -194,6 +215,25 @@ async fn main() {
         if new_size != last_size {
             resize_event(&mut windows);
             last_size = new_size;
+        }
+        let mut hover = false;
+        let mut hover_i = selection_type_buttons.len();
+        for i in 0..4 {
+            let xb = windows.main.config.w - 114.0 + 28.0 * i as f32;
+            hover = cursor.intersect_with_box(
+                xb,
+                windows.main.config.y,
+                28.0,
+                30.0,
+            );
+
+            if hover {
+                hover_i = i;
+                if !cursor.rect || !selection_type_buttons[hover_i].2 {
+                    cursor.set(xb, 0.0, 30.0, 32.0);
+                }
+                break;
+            }
         }
         if is_mouse_button_down(MouseButton::Left) {
             if !is_lmb_down { // lmb down event
@@ -214,24 +254,40 @@ async fn main() {
             }
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                for btn in selection_type_buttons.iter_mut() {
-                    btn.1 = btn.2;
+                if hover {
+                    if is_key_down(KeyCode::LeftShift) {
+                        if get_buttons_enabled_count(&selection_type_buttons) > 1 {
+                            selection_type_buttons[hover_i].1 = !selection_type_buttons[hover_i].1;
+                        } else if !selection_type_buttons[hover_i].1 {
+                            selection_type_buttons[hover_i].1 = true;
+                        }
+                    } else {
+                        for b in selection_type_buttons.iter_mut() {
+                            b.1 = false
+                        }
+                        selection_type_buttons[hover_i].1 = true;
+                    }
                 }
                 for obj in objects.iter_mut() {
-                    if let Some(index) = find_closest_vertice(x_pos, y_pos, &obj.vertices) {
-                        let v = obj.vertices.get_mut(index).unwrap();
-                        if is_key_down(KeyCode::LeftShift) {
-                            v.selected = !v.selected;
-                        } else {
-                            clear_selection_vertices(&mut obj.vertices, index);
+                    if selection_type_buttons[0].1 {
+                        if let Some(index) = find_closest_vertice(x_pos, y_pos, &obj.vertices) {
+                            let v = obj.vertices.get_mut(index).unwrap();
+                            if is_key_down(KeyCode::LeftShift) {
+                                v.selected = !v.selected;
+                            } else {
+                                clear_selection_vertices(&mut obj.vertices, index);
+                            }
+                            break;
                         }
                     }
-                    if let Some(index) = find_closest_edge(x_pos, y_pos, &obj) {
-                        let e = obj.edges.get_mut(index).unwrap();
-                        if is_key_down(KeyCode::LeftShift) {
-                            e.2 = !e.2;
-                        } else {
-                            clear_selection_edges(&mut obj.edges, index);
+                    if selection_type_buttons[1].1 {
+                        if let Some(index) = find_closest_edge(x_pos, y_pos, &obj) {
+                            let e = obj.edges.get_mut(index).unwrap();
+                            if is_key_down(KeyCode::LeftShift) {
+                                e.2 = !e.2;
+                            } else {
+                                clear_selection_edges(&mut obj.edges, index);
+                            }
                         }
                     }
                 }
@@ -246,31 +302,36 @@ async fn main() {
             is_lmb_down = false;
         }
         draw_windows(&windows);
-        cursor.conf.x = x_pos;
-        cursor.conf.y = y_pos;
+        cursor.move_to(x_pos, y_pos);
         let d = dist(Vec4f::new0(), camera.c);
         for obj in (&mut objects).iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
             draw_edges(obj);
-            draw_vertices(obj.vertices.clone());
+            if selection_type_buttons[0].1 {
+                draw_vertices(obj.vertices.clone());
+            }
         }
-        draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
+        draw_cursor(&cursor);
+        if !hover { cursor.reset(); }
         for i in 0..4 {
-            selection_type_buttons.get_mut(i).unwrap().2 = cursor.intersect_with_box(
-                windows.main.config.w - 114.0 + 28.0 * i as f32,
-                windows.main.config.y,
-                28.0,
-                28.0,
-            );
+            let btn = selection_type_buttons.get_mut(i).unwrap();
+            let xb = windows.main.config.w - 114.0 + 28.0 * i as f32;
+            btn.2 = i == hover_i;
             draw_button(
-                windows.main.config.w - 114.0 + 28.0 * i as f32,
+                xb,
                 0.0,
                 30.0,
                 30.0,
-                selection_type_buttons[i].0,
-                selection_type_buttons[i].1,
-                selection_type_buttons[i].2,
+                btn.0,
+                btn.1,
+                btn.2,
             );
+        }
+
+        if cursor_transform_timer.elapsed().as_millis() >= CUR_TRANSFORM_TO {
+            cursor_transform_timer = Instant::now();
+            cursor.next();
+            // println!("{}", cursor.conf.w);
         }
         next_frame().await
     }
