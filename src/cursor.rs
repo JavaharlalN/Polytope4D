@@ -44,11 +44,11 @@ impl Config {
 impl Cursor {
     pub fn new(pos: (f32, f32)) -> Cursor {
         Cursor{
-            conf: Config::with_pos(pos),
+            conf: Config::with_pos(pos), // то, что отображается
             rect: false,
-            last: Config::default(),
-            real: Config::default(),
-            need: Config::default(),
+            last: Config::default(),     // то, что должно отображаться
+            real: Config::default(),     // то, что на самом деле
+            need: Config::default(),     // то, что было в начале анимации
             step: 0,
         }
     }
@@ -58,8 +58,8 @@ impl Cursor {
         xb: f32, yb: f32,
         w: f32, h: f32,
     ) -> bool {
-        self.conf.x >= xb && self.conf.x <= xb + w &&
-        self.conf.y >= yb && self.conf.y <= yb + h 
+        self.real.x >= xb && self.real.x < xb + w &&
+        self.real.y >= yb && self.real.y < yb + h 
     }
 
     pub fn next(&mut self) {
@@ -69,12 +69,36 @@ impl Cursor {
             self.conf.w = self.last.w + self.step as f32 / STEPS as f32 * (self.need.w - self.last.w);
             self.conf.h = self.last.h + self.step as f32 / STEPS as f32 * (self.need.h - self.last.h);
             self.conf.r = self.last.r + self.step as f32 / STEPS as f32 * (self.need.r - self.last.r);
+            self.step += 1;
+        } else {
+            self.conf = self.need;
         }
-        self.step += 1;
+    }
+
+    pub fn move_to(&mut self, x: f32, y: f32) {
+        self.real.x = x;
+        self.real.y = y;
+        if !self.rect {
+            self.conf.x = x;
+            self.conf.y = y;
+        }
+    }
+
+    pub fn set(&mut self, x: f32, y: f32, w: f32, h: f32) {
+        self.need.x = x;
+        self.need.y = y;
+        self.need.w = w;
+        self.need.h = h;
+        self.last = self.real.clone();
+        self.conf = self.real.clone();
+        self.rect = true;
+        self.step = 0;
     }
 
     pub fn reset(&mut self) {
         self.conf = self.real;
+        self.last = self.real;
+        self.need = self.real;
         self.rect = false;
     }
 }
