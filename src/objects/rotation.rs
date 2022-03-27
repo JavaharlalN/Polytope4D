@@ -1,3 +1,5 @@
+use crate::angle::Angle;
+
 use super::*;
 
 
@@ -126,6 +128,36 @@ impl Vec4f {
         self.z = z * cos + w * sin;
         self.w = w * cos - z * sin;
         self
+    }
+
+    pub fn rotate(&mut self, a: Angle) -> &mut Self {
+        self.rotate_xy(&a.xy)
+            .rotate_xz(&a.xz)
+            .rotate_xw(&a.xw)
+            .rotate_yz(&a.yz)
+            .rotate_yw(&a.yw)
+            .rotate_zw(&a.zw)
+    }
+
+    pub fn rotated(self, a: Angle) -> Self {
+        self.rotated_xy(&a.xy)
+            .rotated_xz(&a.xz)
+            .rotated_xw(&a.xw)
+            .rotated_yz(&a.yz)
+            .rotated_yw(&a.yw)
+            .rotated_zw(&a.zw)
+    }
+}
+
+impl Axes {
+    pub fn rotated(self, a: Angle) -> Self {
+        Axes {
+            x: self.x.rotated(a),
+            y: self.y.rotated(a),
+            z: self.z.rotated(a),
+            w: self.w.rotated(a),
+            offset: self.offset,
+        }
     }
 }
 

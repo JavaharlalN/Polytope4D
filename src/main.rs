@@ -185,12 +185,12 @@ async fn main() {
     unsafe {
         sapp::sapp_show_mouse(false);
     }
-    let mut selection_type_buttons = vec!(
+    let mut selection_type_buttons = vec![
         (Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None), true, false),
         (Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None), false, false),
         (Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None), false, false),
         (Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None), false, false),
-    );
+    ];
     let mut windows = WindowGroup{
         main: MainWindow::new(screen_width(), screen_height()),
         scene: SceneWindow::new(screen_width(), screen_height()),
@@ -204,6 +204,7 @@ async fn main() {
     let mut click_timer = Instant::now();
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
+    
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));

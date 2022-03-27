@@ -28,6 +28,27 @@ pub struct Vec4f {
     pub selected: bool,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct Axes {
+    pub x: Vec4f,
+    pub y: Vec4f,
+    pub z: Vec4f,
+    pub w: Vec4f,
+    pub offset: (f32, f32),
+}
+
+impl Axes {
+    pub fn new(x: f32, y: f32) -> Self {
+        Axes {
+            x: Vec4f::new(1.0, 0.0, 0.0, 0.0),
+            y: Vec4f::new(0.0, 1.0, 0.0, 0.0),
+            z: Vec4f::new(0.0, 0.0, 1.0, 0.0),
+            w: Vec4f::new(0.0, 0.0, 0.0, 1.0),
+            offset: (x, y),
+        }
+    }
+}
+
 impl Vec4f {
     pub fn new(x: f32, y: f32, z: f32, w: f32) -> Vec4f {
         Vec4f {
