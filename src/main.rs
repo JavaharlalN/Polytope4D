@@ -18,11 +18,14 @@ mod angle;
 pub mod objects;
 pub mod window;
 use angle::*;
+use macroquad::prelude::Font;
+use macroquad::prelude::TextParams;
 use macroquad::prelude::Texture2D;
 use macroquad::prelude::draw_rectangle;
 use macroquad::prelude::clear_background;
 use macroquad::prelude::Color;
 use macroquad::prelude::draw_rectangle_lines;
+use macroquad::prelude::draw_text_ex;
 use macroquad::prelude::draw_texture;
 use macroquad::prelude::screen_width;
 use macroquad::prelude::screen_height;
@@ -180,6 +183,126 @@ fn get_buttons_enabled_count(buttons: &Vec<(Texture2D, bool, bool)>) -> i32 {
     counter
 }
 
+fn lmb_click_event(
+    hover: bool,
+    selection_type_buttons: &mut Vec<(Texture2D, bool, bool)>,
+    hover_i: usize,
+    objects: &mut Vec<Object>,
+    xy: (f32, f32),
+) {
+    if hover {
+        if is_key_down(KeyCode::LeftShift) {
+            if get_buttons_enabled_count(selection_type_buttons) > 1 {
+                selection_type_buttons[hover_i].1 = !selection_type_buttons[hover_i].1;
+            } else if !selection_type_buttons[hover_i].1 {
+                selection_type_buttons[hover_i].1 = true;
+            }
+        } else {
+            for b in selection_type_buttons.iter_mut() {
+                b.1 = false
+            }
+            selection_type_buttons[hover_i].1 = true;
+        }
+    }
+    for obj in objects.iter_mut() {
+        if selection_type_buttons[0].1 {
+            if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
+                let v = obj.vertices.get_mut(index).unwrap();
+                if is_key_down(KeyCode::LeftShift) { v.selected = !v.selected; }
+                else { clear_selection_vertices(&mut obj.vertices, index); }
+                break;
+            }
+        }
+        if selection_type_buttons[1].1 {
+            if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
+                let e = obj.edges.get_mut(index).unwrap();
+                if is_key_down(KeyCode::LeftShift) { e.2 = !e.2; }
+                else { clear_selection_edges(&mut obj.edges, index); }
+            }
+        }
+    }
+}
+
+fn freeze_objects(objects: &mut Vec<Object>, a: Angle) {
+    for obj in objects.iter_mut() {
+        for v in obj.vertices.iter_mut() {
+            v.freeze(&a);
+        }
+    }
+}
+
+fn lmb_drag_event(
+    is_lmb_down: &mut bool,
+    click_timer: &mut Instant,
+    pos: (f32, f32),
+    last: (f32, f32),
+    angle: &mut Angle,
+    scroll_delta: f32,
+) {
+    if !*is_lmb_down {
+        *is_lmb_down = true;
+        *click_timer = Instant::now();
+    }
+    if click_timer.elapsed().as_millis() >= CLICK_TIMEOUT {
+        let x_delta = (pos.0 - last.0) / 200.0;
+        let y_delta = (pos.1 - last.1) / 200.0;
+        if is_key_down(KeyCode::LeftShift) {
+            angle.yz += y_delta;
+            angle.xz += x_delta;
+        } else {
+            angle.yw += y_delta;
+            angle.xw += x_delta;
+        }
+        angle.zw += scroll_delta / 100.0;
+    }
+}
+
+fn draw_axes(axes: &Axes, w: f32, h: f32) {
+    let (off_x, off_y) = axes.offset;
+    let (off_x, off_y) = (off_x, off_y + h);
+    if let Some((x, y)) = axes.x.centered(w, h) {
+        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 0.0, 1.0));
+        draw_text_ex("X", x + off_x + 10.0, y + off_y, TextParams {
+            font: Font::default(),
+            font_size: 18,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+            color: Color::new(0.3, 0.3, 0.3, 1.0),
+        })
+    }
+    if let Some((x, y)) = axes.y.centered(w, h) {
+        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(0.0, 1.0, 0.0, 1.0));
+        draw_text_ex("Y", x + off_x + 10.0, y + off_y, TextParams {
+            font: Font::default(),
+            font_size: 18,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+            color: Color::new(0.3, 0.3, 0.3, 1.0),
+        })
+    }
+    if let Some((x, y)) = axes.z.centered(w, h) {
+        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(0.0, 0.0, 1.0, 1.0));
+        draw_text_ex("Z", x + off_x + 10.0, y + off_y, TextParams {
+            font: Font::default(),
+            font_size: 18,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+            color: Color::new(0.3, 0.3, 0.3, 1.0),
+        })
+    }
+    if let Some((x, y)) = axes.w.centered(w, h) {
+        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 1.0, 1.0));
+        draw_text_ex("W", x + off_x + 10.0, y + off_y, TextParams {
+            font: Font::default(),
+            font_size: 18,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+            color: Color::new(0.3, 0.3, 0.3, 1.0),
+        })
+    }
+
+}
+
 #[macroquad::main("Polytope 4D")]
 async fn main() {
     unsafe {
@@ -204,7 +327,7 @@ async fn main() {
     let mut click_timer = Instant::now();
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
-    
+    let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
@@ -237,61 +360,13 @@ async fn main() {
             }
         }
         if is_mouse_button_down(MouseButton::Left) {
-            if !is_lmb_down { // lmb down event
-                is_lmb_down = true;
-                click_timer = Instant::now();
-            }
-            if click_timer.elapsed().as_millis() >= CLICK_TIMEOUT {
-                let x_delta = (x_pos - x_last) / 200.0;
-                let y_delta = (y_pos - y_last) / 200.0;
-                if is_key_down(KeyCode::LeftShift) {
-                    angle.yz += y_delta;
-                    angle.xz += x_delta;
-                } else {
-                    angle.yw += y_delta;
-                    angle.xw += x_delta;
-                }
-                angle.zw += scroll_delta / 100.0;
-            }
+            lmb_drag_event(&mut is_lmb_down, &mut click_timer, (x_pos, y_pos), (x_last, y_last), &mut angle, scroll_delta);
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                if hover {
-                    if is_key_down(KeyCode::LeftShift) {
-                        if get_buttons_enabled_count(&selection_type_buttons) > 1 {
-                            selection_type_buttons[hover_i].1 = !selection_type_buttons[hover_i].1;
-                        } else if !selection_type_buttons[hover_i].1 {
-                            selection_type_buttons[hover_i].1 = true;
-                        }
-                    } else {
-                        for b in selection_type_buttons.iter_mut() {
-                            b.1 = false
-                        }
-                        selection_type_buttons[hover_i].1 = true;
-                    }
-                }
-                for obj in objects.iter_mut() {
-                    if selection_type_buttons[0].1 {
-                        if let Some(index) = find_closest_vertice(x_pos, y_pos, &obj.vertices) {
-                            let v = obj.vertices.get_mut(index).unwrap();
-                            if is_key_down(KeyCode::LeftShift) { v.selected = !v.selected; }
-                            else { clear_selection_vertices(&mut obj.vertices, index); }
-                            break;
-                        }
-                    }
-                    if selection_type_buttons[1].1 {
-                        if let Some(index) = find_closest_edge(x_pos, y_pos, &obj) {
-                            let e = obj.edges.get_mut(index).unwrap();
-                            if is_key_down(KeyCode::LeftShift) { e.2 = !e.2; }
-                            else { clear_selection_edges(&mut obj.edges, index); }
-                        }
-                    }
-                }
+                lmb_click_event(hover, &mut selection_type_buttons, hover_i, &mut objects, (x_pos, y_pos));
             } else {
-                for obj in objects.iter_mut() {
-                    for v in obj.vertices.iter_mut() {
-                        v.freeze(&angle);
-                    }
-                }
+                freeze_objects(&mut objects, angle);
+                axes.freeze(&angle);
             }
             angle.clear();
             is_lmb_down = false;
@@ -306,6 +381,8 @@ async fn main() {
                 draw_vertices(obj.vertices.clone());
             }
         }
+        axes.calc(&angle, &windows.main);
+        draw_axes(&axes, windows.main.config.w, windows.main.config.h);
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
         for i in 0..4 {

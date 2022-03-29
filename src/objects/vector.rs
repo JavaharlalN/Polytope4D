@@ -47,6 +47,20 @@ impl Axes {
             offset: (x, y),
         }
     }
+
+    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
+        self.x.calc(a, 8.0, window);
+        self.y.calc(a, 8.0, window);
+        self.z.calc(a, 8.0, window);
+        self.w.calc(a, 8.0, window);
+    }
+
+    pub fn freeze(&mut self, a: &Angle) {
+        self.x.freeze(a);
+        self.y.freeze(a);
+        self.z.freeze(a);
+        self.w.freeze(a);
+    }
 }
 
 impl Vec4f {
@@ -120,6 +134,17 @@ impl Vec4f {
             proj_x: Some(v.0),
             proj_y: Some(v.1),
             selected: false,
+        }
+    }
+
+    pub fn centered(self, w: f32, h: f32) -> Option<(f32, f32)> {
+        if let Some((x, y)) = self.get_proj() {
+            Some((
+                x - w / 2.0,
+                y - h / 2.0,
+            ))
+        } else {
+            None
         }
     }
 
