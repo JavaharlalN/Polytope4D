@@ -28,6 +28,41 @@ pub struct Vec4f {
     pub selected: bool,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct Axes {
+    pub x: Vec4f,
+    pub y: Vec4f,
+    pub z: Vec4f,
+    pub w: Vec4f,
+    pub offset: (f32, f32),
+}
+
+impl Axes {
+    pub fn new(x: f32, y: f32) -> Self {
+        Axes {
+            x: Vec4f::new(1.0, 0.0, 0.0, 0.0),
+            y: Vec4f::new(0.0, 1.0, 0.0, 0.0),
+            z: Vec4f::new(0.0, 0.0, 1.0, 0.0),
+            w: Vec4f::new(0.0, 0.0, 0.0, 1.0),
+            offset: (x, y),
+        }
+    }
+
+    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
+        self.x.calc(a, 8.0, window);
+        self.y.calc(a, 8.0, window);
+        self.z.calc(a, 8.0, window);
+        self.w.calc(a, 8.0, window);
+    }
+
+    pub fn freeze(&mut self, a: &Angle) {
+        self.x.freeze(a);
+        self.y.freeze(a);
+        self.z.freeze(a);
+        self.w.freeze(a);
+    }
+}
+
 impl Vec4f {
     pub fn new(x: f32, y: f32, z: f32, w: f32) -> Vec4f {
         Vec4f {
@@ -99,6 +134,17 @@ impl Vec4f {
             proj_x: Some(v.0),
             proj_y: Some(v.1),
             selected: false,
+        }
+    }
+
+    pub fn centered(self, w: f32, h: f32) -> Option<(f32, f32)> {
+        if let Some((x, y)) = self.get_proj() {
+            Some((
+                x - w / 2.0,
+                y - h / 2.0,
+            ))
+        } else {
+            None
         }
     }
 
