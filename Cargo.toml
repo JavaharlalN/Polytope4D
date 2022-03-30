@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 macroquad = "0.3.15"
 sapp-linux = "0.1.14"
+glium = "0.17.0"
+nalgebra = "0.17"
