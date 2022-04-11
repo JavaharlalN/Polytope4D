@@ -39,7 +39,7 @@ use objects::*;
 use window::*;
 use std::time::Instant;
 
-const CLICK_TIMEOUT: u128 = 150;
+const CLICK_TIMEOUT: u128 = 200;
 const CUR_TRANSFORM_TO: u128 = 20;
 const MAX_DIST: f32 = 20.0;
 
