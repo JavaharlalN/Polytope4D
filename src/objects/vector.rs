@@ -3,6 +3,7 @@ use std::ops::Add;
 use std::ops::Div;
 use std::ops::Sub;
 use std::ops::Mul;
+use std::ops::AddAssign;
 use std::clone::Clone;
 
 use crate::angle::Angle;
@@ -60,6 +61,25 @@ impl Axes {
         self.y.freeze(a);
         self.z.freeze(a);
         self.w.freeze(a);
+    }
+
+    pub fn dist(self, axis: usize, x: f32, y: f32) -> Option<f32> {
+        let pair = match axis {
+            0 => (self.x.get_proj(), Some(self.offset)),
+            1 => (self.y.get_proj(), Some(self.offset)),
+            2 => (self.z.get_proj(), Some(self.offset)),
+            _ => (self.w.get_proj(), Some(self.offset))
+        };
+        if let (Some(a), Some(b)) = pair {
+            let d1 = dist2d(a.0, a.1, b.0, b.1);
+            let d2 = dist2d(a.0, a.1, x, y);
+            let d3 = dist2d(x, y, b.0, b.1);
+            if d2.powi(2) > d1.powi(2) + d3.powi(2) { return None }
+            if d3.powi(2) > d1.powi(2) + d2.powi(2) { return None }
+            let s = (d1 + d2 + d3) / 2.0;
+            let heron = (s * (s - d1) * (s - d2) * (s - d3)).sqrt();
+            Some(heron / d1 * 2.0)
+        } else { None }
     }
 }
 
@@ -222,5 +242,27 @@ impl Div<f32> for Vec4f {
             self.z / v,
             self.w / v,
         )
+    }
+}
+
+impl Div<usize> for Vec4f {
+    type Output = Vec4f;
+    fn div(self, vu: usize) -> Self {
+        let v = vu as f32;
+        Vec4f::new(
+            self.x / v,
+            self.y / v,
+            self.z / v,
+            self.w / v,
+        )
+    }
+}
+
+impl AddAssign<Vec4f> for Vec4f {
+    fn add_assign(&mut self, v: Vec4f) {
+        self.x = v.x;
+        self.y = v.y;
+        self.z = v.z;
+        self.w = v.w;
     }
 }

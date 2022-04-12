@@ -138,6 +138,15 @@ fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4
     } else { None }
 }
 
+fn get_center(vertices: Vec<Vec4f>) -> Vec4f {
+    let mut center = Vec4f::new0();
+    for v in vertices.iter() {
+        center += *v;
+    }
+
+    center / vertices.len()
+}
+
 fn find_closest_edge(x: f32, y: f32, obj: &Object) -> Option<usize> {
     let mut closest = None;
     let mut min_dist = None;
