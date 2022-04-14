@@ -260,9 +260,9 @@ impl Div<usize> for Vec4f {
 
 impl AddAssign<Vec4f> for Vec4f {
     fn add_assign(&mut self, v: Vec4f) {
-        self.x = v.x;
-        self.y = v.y;
-        self.z = v.z;
-        self.w = v.w;
+        self.x += v.x;
+        self.y += v.y;
+        self.z += v.z;
+        self.w += v.w;
     }
 }

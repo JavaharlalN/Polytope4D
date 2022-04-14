@@ -138,13 +138,20 @@ fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4
     } else { None }
 }
 
-fn get_center(vertices: Vec<Vec4f>) -> Vec4f {
+fn get_center(objects: &Vec<Object>) -> Option<Vec4f> {
     let mut center = Vec4f::new0();
-    for v in vertices.iter() {
-        center += *v;
+    let mut count = 0;
+    for obj in objects {
+        for v in obj.vertices.iter() {
+            if v.selected {
+                center += *v;
+                count += 1;
+            }
+        }
     }
-
-    center / vertices.len()
+    if count > 0 {
+        Some(center / count)
+    } else { None }
 }
 
 fn find_closest_edge(x: f32, y: f32, obj: &Object) -> Option<usize> {
@@ -198,6 +205,9 @@ fn lmb_click_event(
     hover_i: usize,
     objects: &mut Vec<Object>,
     xy: (f32, f32),
+    selection_center: &mut Option<Vec4f>,
+    angle: &Angle,
+    windows: &WindowGroup,
 ) {
     if hover {
         if is_key_down(KeyCode::LeftShift) {
@@ -230,6 +240,10 @@ fn lmb_click_event(
             }
         }
     }
+    if let Some(mut c) = get_center(objects) {
+        c.calc(&angle, 5.0, &windows.main);
+        *selection_center = Some(c);
+    }
 }
 
 fn freeze_objects(objects: &mut Vec<Object>, a: Angle) {
@@ -247,6 +261,9 @@ fn lmb_drag_event(
     last: (f32, f32),
     angle: &mut Angle,
     scroll_delta: f32,
+    center: &mut Option<Vec4f>,
+    objects: &Vec<Object>,
+    windows: &WindowGroup,
 ) {
     if !*is_lmb_down {
         *is_lmb_down = true;
@@ -263,12 +280,20 @@ fn lmb_drag_event(
             angle.xw += x_delta;
         }
         angle.zw += scroll_delta / 100.0;
+        if let Some(mut c) = get_center(objects) {
+            c.calc(&angle, 5.0, &windows.main);
+            *center = Some(c);
+        }
     }
 }
 
-fn draw_axes(axes: &Axes, w: f32, h: f32) {
+fn draw_compass_axes(axes: &Axes, w: f32, h: f32) {
     let (off_x, off_y) = axes.offset;
     let (off_x, off_y) = (off_x, off_y + h);
+    draw_axes(axes, off_x, off_y, w, h);
+}
+
+fn draw_axes(axes: &Axes, off_x: f32, off_y: f32, w: f32, h: f32) {
     if let Some((x, y)) = axes.x.centered(w, h) {
         draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 0.0, 1.0));
         draw_text_ex("X", x + off_x + 10.0, y + off_y, TextParams {
@@ -309,8 +334,15 @@ fn draw_axes(axes: &Axes, w: f32, h: f32) {
             color: Color::new(0.3, 0.3, 0.3, 1.0),
         })
     }
-
 }
+
+fn draw_motion_axes(axes: &Axes, center: &Vec4f, w: f32, h: f32) {
+    if let Some((off_x, off_y)) = center.get_proj() {
+        // println!("{}, {}", off_x, off_y);
+        draw_axes(axes, off_x, off_y, w, h);
+    }
+}
+
 
 #[macroquad::main("Polytope 4D")]
 async fn main() {
@@ -337,7 +369,7 @@ async fn main() {
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
     let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
-    // let mut selected_vertices: Vec<Vec4f> = vec![];
+    let mut selection_center: Option<Vec4f> = None;
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
         let scroll_delta = mouse_wheel().1;
@@ -369,10 +401,29 @@ async fn main() {
             }
         }
         if is_mouse_button_down(MouseButton::Left) {
-            lmb_drag_event(&mut is_lmb_down, &mut click_timer, (x_pos, y_pos), (x_last, y_last), &mut angle, scroll_delta);
+            lmb_drag_event(
+                &mut is_lmb_down,
+                &mut click_timer,
+                (x_pos, y_pos),
+                (x_last, y_last),
+                &mut angle,
+                scroll_delta,
+                &mut selection_center,
+                &objects,
+                &windows,
+            );
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                lmb_click_event(hover, &mut selection_type_buttons, hover_i, &mut objects, (x_pos, y_pos));
+                lmb_click_event(
+                    hover,
+                    &mut selection_type_buttons,
+                    hover_i,
+                    &mut objects,
+                    (x_pos, y_pos),
+                    &mut selection_center,
+                    &angle,
+                    &windows,
+                );
             } else {
                 freeze_objects(&mut objects, angle);
                 axes.freeze(&angle);
@@ -391,7 +442,14 @@ async fn main() {
             }
         }
         axes.calc(&angle, &windows.main);
-        draw_axes(&axes, windows.main.config.w, windows.main.config.h);
+        draw_compass_axes(&axes, windows.main.config.w, windows.main.config.h);
+        // selection_center = get_center(&objects);
+        if let Some(transform_center) = selection_center {
+            // println!("{}", transform_center);
+            // transform_center.calc(&angle, d, &windows.main);
+            // println!("{}", transform_center);
+            draw_motion_axes(&axes, &transform_center, windows.main.config.w, windows.main.config.h);
+        }
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
         for i in 0..4 {
