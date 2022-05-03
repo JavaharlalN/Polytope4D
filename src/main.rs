@@ -246,6 +246,7 @@ async fn main() {
     let mut objects = vec![Object::tesseract()];
     let mut angle = Angle::new();
     let mut is_lmb_down = false;
+    let mut is_rmb_down = false;
     let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
     let mut click_timer = Instant::now();
     let mut cursor_transform_timer = Instant::now();
@@ -283,12 +284,17 @@ async fn main() {
             }
         }
         if is_mouse_button_down(MouseButton::Left) {
-            lmb_drag_event(&mut is_lmb_down, &mut click_timer, (x_pos, y_pos), (x_last, y_last), &mut angle, scroll_delta);
+            mouse_down_event(&mut is_lmb_down, &mut click_timer);
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
                 lmb_click_event(hover, &mut selection_type_buttons, hover_i, &mut objects, (x_pos, y_pos));
             }
             is_lmb_down = false;
+        } else if is_mouse_button_down(MouseButton::Right) {
+            mouse_down_event(&mut is_rmb_down, &mut click_timer);
+            drag_event((x_pos, y_pos), (x_last, y_last), &mut angle, scroll_delta);
+        } else if is_rmb_down {
+            mouse_up_event(&mut is_rmb_down);
         }
         draw_windows(&windows);
         cursor.move_to(x_pos, y_pos);

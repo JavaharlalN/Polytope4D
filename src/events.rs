@@ -2,32 +2,38 @@ use std::f32::consts::PI;
 
 use super::*;
 
-pub fn lmb_drag_event(
-    is_lmb_down: &mut bool,
-    click_timer: &mut Instant,
+pub fn mouse_down_event(
+    is_mb_down: &mut bool,
+    timer: &mut Instant,
+) {
+    if !*is_mb_down {
+        *is_mb_down = true;
+        *timer = Instant::now();
+    }
+}
+
+pub fn mouse_up_event(is_mb_down: &mut bool) {
+    *is_mb_down = false;
+}
+
+pub fn drag_event(
     pos: (f32, f32),
     last: (f32, f32),
     angle: &mut Angle,
     scroll_delta: f32,
 ) {
-    if !*is_lmb_down {
-        *is_lmb_down = true;
-        *click_timer = Instant::now();
+    let x_delta = (pos.0 - last.0) / 200.0;
+    let y_delta = (pos.1 - last.1) / 200.0;
+    if is_key_down(KeyCode::LeftShift) {
+        angle.yz += y_delta;
+        angle.xz += x_delta;
+    } else {
+        angle.yw += y_delta;
+        angle.xw += x_delta;
     }
-    if click_timer.elapsed().as_millis() >= CLICK_TIMEOUT {
-        let x_delta = (pos.0 - last.0) / 200.0;
-        let y_delta = (pos.1 - last.1) / 200.0;
-        if is_key_down(KeyCode::LeftShift) {
-            angle.yz += y_delta;
-            angle.xz += x_delta;
-        } else {
-            angle.yw += y_delta;
-            angle.xw += x_delta;
-        }
-        angle.yz = angle.yz.max(-PI / 2.0).min(PI / 2.0);
-        angle.yw = angle.yw.max(-PI / 2.0).min(PI / 2.0);
-        angle.zw += scroll_delta / 100.0;
-    }
+    angle.yz = angle.yz.max(-PI / 2.0).min(PI / 2.0);
+    angle.yw = angle.yw.max(-PI / 2.0).min(PI / 2.0);
+    angle.zw += scroll_delta / 100.0;
 }
 
 pub fn lmb_click_event(
