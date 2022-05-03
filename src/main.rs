@@ -15,9 +15,11 @@ extern crate sapp_wasm as sapp;
 extern crate sapp_windows as sapp;
 mod cursor;
 mod angle;
+mod events;
 pub mod objects;
 pub mod window;
 use angle::*;
+use events::*;
 use macroquad::prelude::Font;
 use macroquad::prelude::TextParams;
 use macroquad::prelude::Texture2D;
@@ -51,10 +53,6 @@ fn draw_windows<'a>(windows: &'a WindowGroup) {
         windows.main.config.h,
         Color::new(0.3, 0.3, 0.3, 0.5),
     );
-}
-
-fn resize_event<'a>(windows: &'a mut WindowGroup) {
-    (*windows).main.set_size(screen_width(), screen_height());
 }
 
 fn draw_vertices(vertices: Vec<Vec4f>) {
@@ -175,86 +173,12 @@ fn draw_cursor(cursor: &Cursor) {
     }
 }
 
-fn get_buttons_enabled_count(buttons: &Vec<(Texture2D, bool, bool)>) -> i32 {
+fn get_enabled_buttons_count(buttons: &Vec<(Texture2D, bool, bool)>) -> i32 {
     let mut counter = 0;
     for b in buttons {
         if b.1 { counter += 1; }
     }
     counter
-}
-
-fn lmb_click_event(
-    hover: bool,
-    selection_type_buttons: &mut Vec<(Texture2D, bool, bool)>,
-    hover_i: usize,
-    objects: &mut Vec<Object>,
-    xy: (f32, f32),
-) {
-    if hover {
-        if is_key_down(KeyCode::LeftShift) {
-            if get_buttons_enabled_count(selection_type_buttons) > 1 {
-                selection_type_buttons[hover_i].1 = !selection_type_buttons[hover_i].1;
-            } else if !selection_type_buttons[hover_i].1 {
-                selection_type_buttons[hover_i].1 = true;
-            }
-        } else {
-            for b in selection_type_buttons.iter_mut() {
-                b.1 = false
-            }
-            selection_type_buttons[hover_i].1 = true;
-        }
-    }
-    for obj in objects.iter_mut() {
-        if selection_type_buttons[0].1 {
-            if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
-                let v = obj.vertices.get_mut(index).unwrap();
-                if is_key_down(KeyCode::LeftShift) { v.selected = !v.selected; }
-                else { clear_selection_vertices(&mut obj.vertices, index); }
-                break;
-            }
-        }
-        if selection_type_buttons[1].1 {
-            if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
-                let e = obj.edges.get_mut(index).unwrap();
-                if is_key_down(KeyCode::LeftShift) { e.2 = !e.2; }
-                else { clear_selection_edges(&mut obj.edges, index); }
-            }
-        }
-    }
-}
-
-fn freeze_objects(objects: &mut Vec<Object>, a: Angle) {
-    for obj in objects.iter_mut() {
-        for v in obj.vertices.iter_mut() {
-            v.freeze(&a);
-        }
-    }
-}
-
-fn lmb_drag_event(
-    is_lmb_down: &mut bool,
-    click_timer: &mut Instant,
-    pos: (f32, f32),
-    last: (f32, f32),
-    angle: &mut Angle,
-    scroll_delta: f32,
-) {
-    if !*is_lmb_down {
-        *is_lmb_down = true;
-        *click_timer = Instant::now();
-    }
-    if click_timer.elapsed().as_millis() >= CLICK_TIMEOUT {
-        let x_delta = (pos.0 - last.0) / 200.0;
-        let y_delta = (pos.1 - last.1) / 200.0;
-        if is_key_down(KeyCode::LeftShift) {
-            angle.yz += y_delta;
-            angle.xz += x_delta;
-        } else {
-            angle.yw += y_delta;
-            angle.xw += x_delta;
-        }
-        angle.zw += scroll_delta / 100.0;
-    }
 }
 
 fn draw_axes(axes: &Axes, w: f32, h: f32) {
@@ -300,7 +224,6 @@ fn draw_axes(axes: &Axes, w: f32, h: f32) {
             color: Color::new(0.3, 0.3, 0.3, 1.0),
         })
     }
-
 }
 
 #[macroquad::main("Polytope 4D")]
@@ -364,11 +287,7 @@ async fn main() {
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
                 lmb_click_event(hover, &mut selection_type_buttons, hover_i, &mut objects, (x_pos, y_pos));
-            } else {
-                freeze_objects(&mut objects, angle);
-                axes.freeze(&angle);
             }
-            angle.clear();
             is_lmb_down = false;
         }
         draw_windows(&windows);
