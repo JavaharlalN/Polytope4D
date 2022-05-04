@@ -9,48 +9,60 @@ pub fn draw_cursor(cursor: &Cursor) {
     }
 }
 
+pub fn draw_motion_axes(axes: &MotionAxes, w: f32, h: f32) {
+    if let Some(pos) = axes.pos {
+        let (off_x, off_y) =
+        if let Some(off) = pos.get_proj() {
+            off
+        } else {
+            return;
+        };
+        if let Some((x, y)) = axes.x.get_proj() {
+            draw_line(off_x, off_y, x, y, 2.0, Color::new(1.0, 0.0, 0.0, 1.0));
+        }
+        if let Some((x, y)) = axes.y.get_proj() {
+            draw_line(off_x, off_y, x, y, 2.0, Color::new(0.0, 1.0, 0.0, 1.0));
+        }
+        if let Some((x, y)) = axes.z.get_proj() {
+            draw_line(off_x, off_y, x, y, 2.0, Color::new(0.0, 0.0, 1.0, 1.0));
+        }
+        if let Some((x, y)) = axes.w.get_proj() {
+            draw_line(off_x, off_y, x, y, 2.0, Color::new(1.0, 0.0, 1.0, 1.0));
+        }
+    }
+}
+
+fn draw_axe(off: (f32, f32), xy: (f32, f32), name: &str) {
+    let color = match name {
+        "X" => Color::new(1.0, 0.0, 0.0, 1.0),
+        "Y" => Color::new(0.0, 1.0, 0.0, 1.0),
+        "Z" => Color::new(0.0, 0.0, 1.0, 1.0),
+         _  => Color::new(1.0, 0.0, 1.0, 1.0),
+    };
+    draw_line(off.0, off.1, xy.0 + off.0, xy.1 + off.1, 2.0, color);
+    draw_text_ex(name, xy.0 + off.0 + 10.0, xy.1 + off.1, TextParams {
+        font: Font::default(),
+        font_size: 18,
+        font_scale: 1.0,
+        font_scale_aspect: 1.0,
+        color: Color::new(0.3, 0.3, 0.3, 1.0),
+    })
+}
+
 pub fn draw_axes(axes: &Axes, w: f32, h: f32) {
     let (off_x, off_y) = axes.offset;
-    let (off_x, off_y) = (off_x, off_y + h);
-    if let Some((x, y)) = axes.x.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 0.0, 1.0));
-        draw_text_ex("X", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
+    let offset = (off_x, off_y + h);
+    if let Some(xy) = axes.x.centered(w, h) {
+        draw_axe(offset, xy, "X");
     }
-    if let Some((x, y)) = axes.y.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(0.0, 1.0, 0.0, 1.0));
-        draw_text_ex("Y", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
+    if let Some(xy) = axes.y.centered(w, h) {
+        draw_axe(offset, xy, "Y");
     }
-    if let Some((x, y)) = axes.z.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(0.0, 0.0, 1.0, 1.0));
-        draw_text_ex("Z", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
+    if let Some(xy) = axes.z.centered(w, h) {
+        draw_axe(offset, xy, "Z");
     }
-    if let Some((x, y)) = axes.w.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 1.0, 1.0));
-        draw_text_ex("W", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
+    if let Some(xy) = axes.w.centered(w, h) {
+        draw_axe(offset, xy, "W");
     }
 }
 

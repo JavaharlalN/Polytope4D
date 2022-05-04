@@ -62,22 +62,28 @@ pub fn lmb_click_event(
         if selection_type_buttons[0].1 {
             if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
                 let v = obj.vertices.get_mut(index).unwrap();
-                if is_key_down(KeyCode::LeftShift) { v.selected = !v.selected; }
-                else { clear_selection_vertices(&mut obj.vertices, index); }
+                if is_key_down(KeyCode::LeftShift) {
+                    v.selected = !v.selected;
+                } else {
+                    clear_selection(obj);
+                    obj.vertices[index].selected = true;
+                }
                 break;
             }
         }
         if selection_type_buttons[1].1 {
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
-                if is_key_down(KeyCode::LeftShift) { e.2 = !e.2; }
-                else { clear_selection_edges(&mut obj.edges, index); }
+                if is_key_down(KeyCode::LeftShift) {
+                    e.2 = !e.2;
+                } else {
+                    clear_selection(obj);
+                    obj.edges[index].2 = true;
+                }
             }
         }
     }
-    if let Some(center) = get_center(objects) {
-        motion_axes.move_to(center);
-    }
+    motion_axes.pos = get_center(objects);
 }
 
 pub fn resize_event<'a>(windows: &'a mut WindowGroup) {

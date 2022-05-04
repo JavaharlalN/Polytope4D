@@ -93,15 +93,18 @@ fn find_closest_edge(x: f32, y: f32, obj: &Object) -> Option<usize> {
     } else { None }
 }
 
-fn clear_selection_vertices(vertices: &mut Vec<Vec4f>, index: usize) {
-    for (i, v) in vertices.iter_mut().enumerate() {
-        v.selected = index == i;
+fn clear_selection(object: &mut Object) {
+    for v in &mut object.vertices {
+        v.selected = false;
     }
-}
-
-fn clear_selection_edges(edges: &mut Vec<(usize, usize, bool)>, index: usize) {
-    for (i, e) in edges.iter_mut().enumerate() {
-        e.2 = index == i;
+    for e in &mut object.edges {
+        e.2 = false;
+    }
+    for f in &mut object.faces {
+        f.2 = false;
+    }
+    for c in &mut object.cells {
+        c.3 = false;
     }
 }
 
@@ -202,7 +205,9 @@ async fn main() {
             }
         }
         axes.calc(&angle, &windows.main);
+        motion_axes.calc(&angle, &windows.main);
         draw_axes(&axes, windows.main.config.w, windows.main.config.h);
+        draw_motion_axes(&motion_axes, windows.main.config.w, windows.main.config.h);
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
         for i in 0..4 {
