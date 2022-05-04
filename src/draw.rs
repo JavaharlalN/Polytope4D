@@ -9,6 +9,20 @@ pub fn draw_cursor(cursor: &Cursor) {
     }
 }
 
+fn draw_selected_motion_axe(offset: (f32, f32), axes: &MotionAxes, axe_index: usize) {
+    if let Some(pos) = axes.grab_now {
+        if let Some((x, y)) = pos.get_proj() {
+            let color = match axe_index {
+                0 => Color::new(1.0, 0.0, 0.0, 1.0),
+                1 => Color::new(0.0, 1.0, 0.0, 1.0),
+                2 => Color::new(0.0, 0.0, 1.0, 1.0),
+                _ => Color::new(1.0, 0.0, 1.0, 1.0),
+            };
+            draw_line(offset.0, offset.1, x, y, 3.0, color);
+        }
+    }
+}
+
 pub fn draw_motion_axes(axes: &MotionAxes) {
     if let Some(pos) = axes.pos {
         let (off_x, off_y) =
@@ -17,26 +31,35 @@ pub fn draw_motion_axes(axes: &MotionAxes) {
         } else {
             return;
         };
-        if let Some((x, y)) = axes.x.get_proj() {
-            let thickness = if axes.x.selected { 3.0 } else { 2.0 };
-            let a = if axes.x.selected { 1.0 } else { 0.7 };
-            draw_line(off_x, off_y, x, y, thickness, Color::new(1.0, 0.0, 0.0, a));
+        if axes.grabbed {
+            if axes.x.selected { draw_selected_motion_axe((off_x, off_y), axes, 0); }
+            if axes.y.selected { draw_selected_motion_axe((off_x, off_y), axes, 1); }
+            if axes.z.selected { draw_selected_motion_axe((off_x, off_y), axes, 2); }
+            if axes.w.selected { draw_selected_motion_axe((off_x, off_y), axes, 3); }
+        } else {
+            if let Some((x, y)) = axes.x.get_proj() {
+                let thickness = if axes.x.selected { 3.0 } else { 2.0 };
+                let a = if axes.x.selected { 1.0 } else { 0.7 };
+                draw_line(off_x, off_y, x, y, thickness, Color::new(1.0, 0.0, 0.0, a));
+            }
+            if let Some((x, y)) = axes.y.get_proj() {
+                let thickness = if axes.y.selected { 3.0 } else { 2.0 };
+                let a = if axes.y.selected { 1.0 } else { 0.7 };
+                draw_line(off_x, off_y, x, y, thickness, Color::new(0.0, 1.0, 0.0, a));
+            }
+            if let Some((x, y)) = axes.z.get_proj() {
+                let thickness = if axes.z.selected { 3.0 } else { 2.0 };
+                let a = if axes.z.selected { 1.0 } else { 0.7 };
+                draw_line(off_x, off_y, x, y, thickness, Color::new(0.0, 0.0, 1.0, a));
+            }
+            if let Some((x, y)) = axes.w.get_proj() {
+                let thickness = if axes.w.selected { 3.0 } else { 2.0 };
+                let a = if axes.w.selected { 1.0 } else { 0.7 };
+                draw_line(off_x, off_y, x, y, thickness, Color::new(1.0, 0.0, 1.0, a));
+            }
         }
-        if let Some((x, y)) = axes.y.get_proj() {
-            let thickness = if axes.y.selected { 3.0 } else { 2.0 };
-            let a = if axes.y.selected { 1.0 } else { 0.7 };
-            draw_line(off_x, off_y, x, y, thickness, Color::new(0.0, 1.0, 0.0, a));
-        }
-        if let Some((x, y)) = axes.z.get_proj() {
-            let thickness = if axes.z.selected { 3.0 } else { 2.0 };
-            let a = if axes.z.selected { 1.0 } else { 0.7 };
-            draw_line(off_x, off_y, x, y, thickness, Color::new(0.0, 0.0, 1.0, a));
-        }
-        if let Some((x, y)) = axes.w.get_proj() {
-            let thickness = if axes.w.selected { 3.0 } else { 2.0 };
-            let a = if axes.w.selected { 1.0 } else { 0.7 };
-            draw_line(off_x, off_y, x, y, thickness, Color::new(1.0, 0.0, 1.0, a));
-        }
+        draw_circle(off_x, off_y, 3.0, Color::new(0.0, 0.2, 0.4, 1.0));
+        draw_circle(off_x, off_y, 2.0, Color::new(0.0, 0.6, 1.0, 1.0));
     }
 }
 

@@ -16,6 +16,7 @@ pub fn catch_mouse_event(
     xy_last: (f32, f32),
     motion_axes: &mut MotionAxes,
     angle: &mut Angle,
+    window: &MainWindow,
 ) {
     if is_mouse_button_down(MouseButton::Left) {
         lmb_down_event(is_lmb_down, lmb_click_timer);
@@ -33,7 +34,7 @@ pub fn catch_mouse_event(
         *is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
         rmb_down_event(is_rmb_down, rmb_click_timer, motion_axes);
-        drag_event(xy, xy_last, angle, scroll_delta, motion_axes, objects,);
+        drag_event(xy, xy_last, angle, scroll_delta, motion_axes, objects, window);
     } else if *is_rmb_down {
         mouse_up_event(is_rmb_down, motion_axes, objects);
     }
@@ -81,6 +82,7 @@ pub fn mouse_up_event(
     *is_mb_down = false;
     motion_axes.ungrab();
     motion_axes.pos = get_center(objects);
+    motion_axes.grab_start = None;
 }
 
 pub fn drag_event(
@@ -90,10 +92,11 @@ pub fn drag_event(
     scroll_delta: f32,
     motion_axes: &mut MotionAxes,
     objects: &mut Vec<Object>,
+    window: &MainWindow,
 ) {
     if motion_axes.grabbed {
         if motion_axes.grabbed && is_mouse_button_down(MouseButton::Right) {
-            let delta = motion_axes.get_motion_delta(sub2d(xy, xy_last));
+            let delta = motion_axes.get_motion_delta(sub2d(xy, xy_last), angle, window);
             for obj in objects {
                 for v in &mut obj.vertices {
                     if v.selected {

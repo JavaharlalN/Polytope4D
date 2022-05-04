@@ -169,6 +169,7 @@ async fn main() {
             (x_last, y_last),
             &mut motion_axes,
             &mut angle,
+            &windows.main,
         );
         draw_windows(&windows);
         cursor.move_to(x_pos, y_pos);

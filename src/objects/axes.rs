@@ -67,27 +67,41 @@ impl MotionAxes {
 
     pub fn ungrab(&mut self) {
         self.grab_start = None;
+        self.grab_now = None;
         self.grabbed = false;
     }
 
-    fn get_motion_delta_for_axe(self, axe: &Vec4f, xy_delta: (f32, f32)) -> Vec4f {
+    fn get_motion_delta_for_axe(
+        &mut self,
+        axe: Vec4f,
+        xy_delta: (f32, f32),
+        a: &Angle,
+        window: &MainWindow
+    ) -> Vec4f {
         if let (Some(proj), Some(pos)) = (axe.get_proj(), self.pos) {
             if let Some(pos_proj) = pos.get_proj() {
                 let axe2d = super::sub2d(proj, pos_proj);
                 // println!("{}", dist2d(axe2d, (0.0, 0.0)));
                 let proj_delta_to_axe = super::proj2d(axe2d, xy_delta);
                 let ratio = proj_delta_to_axe / dist2d((0.0, 0.0), axe2d);
-                return Vec4f::new(ratio / 4.0, 0.0, 0.0, 0.0);
+                let delta = axe * ratio;
+                if let Some(now) = self.grab_now {
+                    self.grab_now = Some((now + delta).calc(a, 5.0, window));
+                } else if let Some(start) = self.grab_start {
+                    self.grab_now = Some((start + delta).calc(a, 5.0, window));
+                }
+                return delta;
             }
         }
         return Vec4f::new0();
     }
 
-    pub fn get_motion_delta(self, xy_delta: (f32, f32)) -> Vec4f {
+    pub fn get_motion_delta(&mut self, xy_delta: (f32, f32), a: &Angle, window: &MainWindow) -> Vec4f {
         if !self.any_axe_selected() { return Vec4f::new0(); }
-        if self.x.selected {
-            return self.get_motion_delta_for_axe(&self.x, xy_delta);
-        }
+        if self.x.selected { return self.get_motion_delta_for_axe(self.x, xy_delta, a, window); }
+        if self.y.selected { return self.get_motion_delta_for_axe(self.y, xy_delta, a, window); }
+        if self.z.selected { return self.get_motion_delta_for_axe(self.z, xy_delta, a, window); }
+        if self.w.selected { return self.get_motion_delta_for_axe(self.w, xy_delta, a, window); }
         return Vec4f::new0();
     }
 
