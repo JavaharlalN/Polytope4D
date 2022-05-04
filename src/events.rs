@@ -63,7 +63,11 @@ pub fn lmb_click_event(
             if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
                 let v = obj.vertices.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
-                    v.selected = !v.selected;
+                    if v.selected {
+                        obj.deselect_vertice(index);
+                    } else {
+                        obj.select_vertice(index);
+                    }
                 } else {
                     clear_selection(obj);
                     obj.vertices[index].selected = true;
