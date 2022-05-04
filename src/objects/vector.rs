@@ -54,13 +54,6 @@ impl Axes {
         self.z.calc(a, 8.0, window);
         self.w.calc(a, 8.0, window);
     }
-
-    pub fn freeze(&mut self, a: &Angle) {
-        self.x.freeze(a);
-        self.y.freeze(a);
-        self.z.freeze(a);
-        self.w.freeze(a);
-    }
 }
 
 impl Vec4f {
@@ -165,15 +158,6 @@ impl Vec4f {
         let y = proj3d.1 * z + window.config.h / 2.0;
         self.set_proj((x, y));
         self.with_proj((x, y))
-    }
-
-    pub fn freeze(&mut self, a: &Angle) {
-        self.rotate_xy(&a.xy)
-            .rotate_xz(&a.xz)
-            .rotate_xw(&a.xw)
-            .rotate_yz(&a.yz)
-            .rotate_yw(&a.yw)
-            .rotate_zw(&a.zw);
     }
 }
 
