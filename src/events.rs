@@ -79,10 +79,14 @@ pub fn lmb_click_event(
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
-                    e.2 = !e.2;
+                    if e.2 { // if selected
+                        obj.deselect_edge(index);
+                    } else {
+                        obj.select_edge(index);
+                    }
                 } else {
                     clear_selection(obj);
-                    obj.edges[index].2 = true;
+                    obj.select_edge(index);
                 }
             }
         }

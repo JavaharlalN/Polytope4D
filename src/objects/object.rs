@@ -47,6 +47,22 @@ impl Object {
         }
     }
 
+    pub fn select_edge(&mut self, index: usize) {
+        self.edges[index].2 = true;
+        let i1 = self.edges[index].0;
+        let i2 = self.edges[index].1;
+        self.select_vertice(i1);
+        self.select_vertice(i2);
+    }
+
+    pub fn deselect_edge(&mut self, index: usize) {
+        self.edges[index].2 = false;
+        let i1 = self.edges[index].0;
+        let i2 = self.edges[index].1;
+        self.deselect_vertice(i1);
+        self.deselect_vertice(i2);
+    }
+
     pub fn tesseract() -> Object {
         Object{
             vertices: vec![
