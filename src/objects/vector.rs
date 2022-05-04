@@ -14,8 +14,20 @@ pub fn dist(v1: Vec4f, v2: Vec4f) -> f32 {
     ((v1.x - v2.x).powf(2.0) + (v1.y - v2.y).powf(2.0) + (v1.z - v2.z).powf(2.0) + (v1.w - v2.w).powf(2.0)).sqrt()
 }
 
-pub fn dist2d(x1: f32, y1: f32, x2: f32, y2: f32) -> f32 {
-    ((x2 - x1).powf(2.0) + (y2 - y1).powf(2.0)).sqrt()
+pub fn sub2d(xy1: (f32, f32), xy2: (f32, f32)) -> (f32, f32) {
+    (xy1.0 - xy2.0, xy1.1 - xy2.1)
+}
+
+pub fn dot2d(xy1: (f32, f32), xy2: (f32, f32)) -> f32 {
+    xy1.0 * xy2.0 + xy1.1 * xy2.1
+}
+
+pub fn proj2d(xy1: (f32, f32), xy2: (f32, f32)) -> f32 {
+    dot2d(xy1, xy2) / dist2d(xy1, xy2)
+}
+
+pub fn dist2d(xy1: (f32, f32), xy2: (f32, f32)) -> f32 {
+    ((xy2.0 - xy1.0).powf(2.0) + (xy2.1 - xy1.1).powf(2.0)).sqrt()
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -27,73 +39,6 @@ pub struct Vec4f {
     proj_x: Option<f32>,
     proj_y: Option<f32>,
     pub selected: bool,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Axes {
-    pub x: Vec4f,
-    pub y: Vec4f,
-    pub z: Vec4f,
-    pub w: Vec4f,
-    pub offset: (f32, f32),
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct MotionAxes {
-    pub x: Vec4f,
-    pub y: Vec4f,
-    pub z: Vec4f,
-    pub w: Vec4f,
-    pub pos: Option<Vec4f>,
-}
-
-impl MotionAxes {
-    pub fn new() -> Self {
-        MotionAxes {
-            x: Vec4f::new(0.5, 0.0, 0.0, 0.0),
-            y: Vec4f::new(0.0, 0.5, 0.0, 0.0),
-            z: Vec4f::new(0.0, 0.0, 0.5, 0.0),
-            w: Vec4f::new(0.0, 0.0, 0.0, 0.5),
-            pos: None,
-        }
-    }
-
-    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
-        if let Some(mut pos) = self.pos {
-            let x = (self.x + pos).calc(a, 5.0, window);
-            let y = (self.y + pos).calc(a, 5.0, window);
-            let z = (self.z + pos).calc(a, 5.0, window);
-            let w = (self.w + pos).calc(a, 5.0, window);
-            if let Some(proj) = x.get_proj() { self.x.set_proj(proj); }
-            if let Some(proj) = y.get_proj() { self.y.set_proj(proj); }
-            if let Some(proj) = z.get_proj() { self.z.set_proj(proj); }
-            if let Some(proj) = w.get_proj() { self.w.set_proj(proj); }
-            self.pos = Some(pos.calc(a, 5.0, window));
-        }
-    }
-
-    pub fn move_to(&mut self, pos: Vec4f) {
-        self.pos = Some(pos);
-    }
-}
-
-impl Axes {
-    pub fn new(x: f32, y: f32) -> Self {
-        Axes {
-            x: Vec4f::new(1.0, 0.0, 0.0, 0.0),
-            y: Vec4f::new(0.0, 1.0, 0.0, 0.0),
-            z: Vec4f::new(0.0, 0.0, 1.0, 0.0),
-            w: Vec4f::new(0.0, 0.0, 0.0, 1.0),
-            offset: (x, y),
-        }
-    }
-
-    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
-        self.x.calc(a, 8.0, window);
-        self.y.calc(a, 8.0, window);
-        self.z.calc(a, 8.0, window);
-        self.w.calc(a, 8.0, window);
-    }
 }
 
 impl Vec4f {
@@ -251,6 +196,8 @@ impl Div<f32> for Vec4f {
 
 impl AddAssign for Vec4f {
     fn add_assign(&mut self, v: Vec4f) {
-        *self = *self + v;
+        let selected = self.selected;
+        *self = *self + v; // we can lost selection and projection here!!!!!!!!!
+        self.selected = selected;
     }
 }

@@ -43,16 +43,12 @@ use objects::*;
 use window::*;
 use std::time::Instant;
 
-const CLICK_TIMEOUT: u128 = 200;
-const CUR_TRANSFORM_TO: u128 = 20;
-const MAX_DIST: f32 = 20.0;
-
 fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> {
     let mut closest = None;
     let mut min_dist = None;
     for (i, v) in vertices.iter().enumerate() {
-        if let Some((px, py)) = v.get_proj() {
-            let d = dist2d(x, y, px, py);
+        if let Some(proj) = v.get_proj() {
+            let d = dist2d((x, y), proj);
             if let Some(min_d) = min_dist {
                 if d < min_d { min_dist = Some(d); closest = Some(i)}
             } else { min_dist = Some(d); closest = Some(i) }
@@ -66,30 +62,14 @@ fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> 
 
 fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4f>) -> Option<f32> {
     if let (Some(a), Some(b)) = (vertices[pair.0].get_proj(), vertices[pair.1].get_proj()) {
-        let d1 = dist2d(a.0, a.1, b.0, b.1);
-        let d2 = dist2d(a.0, a.1, x, y);
-        let d3 = dist2d(x, y, b.0, b.1);
+        let d1 = dist2d(a, b);
+        let d2 = dist2d(a, (x, y));
+        let d3 = dist2d((x, y), b);
         if d2.powi(2) > d1.powi(2) + d3.powi(2) { return None }
         if d3.powi(2) > d1.powi(2) + d2.powi(2) { return None }
         let s = (d1 + d2 + d3) / 2.0;
         let heron = (s * (s - d1) * (s - d2) * (s - d3)).sqrt();
         Some(heron / d1 * 2.0)
-    } else { None }
-}
-
-fn find_closest_edge(x: f32, y: f32, obj: &Object) -> Option<usize> {
-    let mut closest = None;
-    let mut min_dist = None;
-    for (i, e) in obj.edges.iter().enumerate() {
-        if let Some(d) = dist_to_edge(x, y, e, &obj.vertices) {
-            if let Some(min_d) = min_dist {
-                if d < min_d { min_dist = Some(d); closest = Some(i)}
-            } else { min_dist = Some(d); closest = Some(i) }
-        }
-    }
-    if let Some(d) = min_dist {
-        if d < MAX_DIST { closest }
-        else { None }
     } else { None }
 }
 
@@ -137,8 +117,9 @@ async fn main() {
     let mut angle = Angle::new();
     let mut is_lmb_down = false;
     let mut is_rmb_down = false;
-    let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
-    let mut click_timer = Instant::now();
+    let camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
+    let mut lmb_click_timer = Instant::now();
+    let mut rmb_click_timer = Instant::now();
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
     let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
@@ -174,26 +155,21 @@ async fn main() {
                 break;
             }
         }
-        if is_mouse_button_down(MouseButton::Left) {
-            mouse_down_event(&mut is_lmb_down, &mut click_timer);
-        } else if is_lmb_down { // lmb up event
-            if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                lmb_click_event(
-                    hover,
-                    &mut selection_type_buttons,
-                    hover_i,
-                    &mut objects,
-                    (x_pos, y_pos),
-                    &mut motion_axes,
-                );
-            }
-            is_lmb_down = false;
-        } else if is_mouse_button_down(MouseButton::Right) {
-            mouse_down_event(&mut is_rmb_down, &mut click_timer);
-            drag_event((x_pos, y_pos), (x_last, y_last), &mut angle, scroll_delta);
-        } else if is_rmb_down {
-            mouse_up_event(&mut is_rmb_down);
-        }
+        catch_mouse_event(
+            &mut is_lmb_down,
+            &mut is_rmb_down,
+            scroll_delta,
+            &mut lmb_click_timer,
+            &mut rmb_click_timer,
+            hover,
+            hover_i,
+            &mut selection_type_buttons,
+            &mut objects,
+            (x_pos, y_pos),
+            (x_last, y_last),
+            &mut motion_axes,
+            &mut angle,
+        );
         draw_windows(&windows);
         cursor.move_to(x_pos, y_pos);
         let d = dist(Vec4f::new0(), camera.c);
@@ -207,7 +183,7 @@ async fn main() {
         axes.calc(&angle, &windows.main);
         motion_axes.calc(&angle, &windows.main);
         draw_axes(&axes, windows.main.config.w, windows.main.config.h);
-        draw_motion_axes(&motion_axes, windows.main.config.w, windows.main.config.h);
+        draw_motion_axes(&motion_axes);
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
         for i in 0..4 {
