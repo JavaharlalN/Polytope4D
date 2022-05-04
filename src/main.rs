@@ -139,6 +139,7 @@ async fn main() {
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
     let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
+    let mut motion_axes = MotionAxes::new();
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
@@ -174,7 +175,14 @@ async fn main() {
             mouse_down_event(&mut is_lmb_down, &mut click_timer);
         } else if is_lmb_down { // lmb up event
             if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                lmb_click_event(hover, &mut selection_type_buttons, hover_i, &mut objects, (x_pos, y_pos));
+                lmb_click_event(
+                    hover,
+                    &mut selection_type_buttons,
+                    hover_i,
+                    &mut objects,
+                    (x_pos, y_pos),
+                    &mut motion_axes,
+                );
             }
             is_lmb_down = false;
         } else if is_mouse_button_down(MouseButton::Right) {

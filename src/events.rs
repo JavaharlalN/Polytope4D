@@ -42,6 +42,7 @@ pub fn lmb_click_event(
     hover_i: usize,
     objects: &mut Vec<Object>,
     xy: (f32, f32),
+    motion_axes: &mut MotionAxes,
 ) {
     if hover {
         if is_key_down(KeyCode::LeftShift) {
@@ -73,6 +74,9 @@ pub fn lmb_click_event(
                 else { clear_selection_edges(&mut obj.edges, index); }
             }
         }
+    }
+    if let Some(center) = get_center(objects) {
+        motion_axes.move_to(center);
     }
 }
 

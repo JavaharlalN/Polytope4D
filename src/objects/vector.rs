@@ -1,5 +1,6 @@
 use crate::window::MainWindow;
 use std::ops::Add;
+use std::ops::AddAssign;
 use std::ops::Div;
 use std::ops::Sub;
 use std::ops::Mul;
@@ -35,6 +36,45 @@ pub struct Axes {
     pub z: Vec4f,
     pub w: Vec4f,
     pub offset: (f32, f32),
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct MotionAxes {
+    pub x: Vec4f,
+    pub y: Vec4f,
+    pub z: Vec4f,
+    pub w: Vec4f,
+    pub pos: Option<Vec4f>,
+}
+
+impl MotionAxes {
+    pub fn new() -> Self {
+        MotionAxes {
+            x: Vec4f::new(0.5, 0.0, 0.0, 0.0),
+            y: Vec4f::new(0.0, 0.5, 0.0, 0.0),
+            z: Vec4f::new(0.0, 0.0, 0.5, 0.0),
+            w: Vec4f::new(0.0, 0.0, 0.0, 0.5),
+            pos: None,
+        }
+    }
+
+    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
+        if let Some(mut pos) = self.pos {
+            let x = (self.x + pos).calc(a, 5.0, window);
+            let y = (self.y + pos).calc(a, 5.0, window);
+            let z = (self.z + pos).calc(a, 5.0, window);
+            let w = (self.w + pos).calc(a, 5.0, window);
+            if let Some(proj) = x.get_proj() { self.x.set_proj(proj); }
+            if let Some(proj) = y.get_proj() { self.y.set_proj(proj); }
+            if let Some(proj) = z.get_proj() { self.z.set_proj(proj); }
+            if let Some(proj) = w.get_proj() { self.w.set_proj(proj); }
+            self.pos = Some(pos.calc(a, 5.0, window));
+        }
+    }
+
+    pub fn move_to(&mut self, pos: Vec4f) {
+        self.pos = Some(pos);
+    }
 }
 
 impl Axes {
@@ -206,5 +246,11 @@ impl Div<f32> for Vec4f {
             self.z / v,
             self.w / v,
         )
+    }
+}
+
+impl AddAssign for Vec4f {
+    fn add_assign(&mut self, v: Vec4f) {
+        *self = *self + v;
     }
 }
