@@ -15,9 +15,11 @@ extern crate sapp_wasm as sapp;
 extern crate sapp_windows as sapp;
 mod cursor;
 mod angle;
+mod draw;
 mod events;
 pub mod objects;
 pub mod window;
+use draw::*;
 use angle::*;
 use events::*;
 use macroquad::prelude::Font;
@@ -41,77 +43,12 @@ use objects::*;
 use window::*;
 use std::time::Instant;
 
-const CLICK_TIMEOUT: u128 = 200;
-const CUR_TRANSFORM_TO: u128 = 20;
-const MAX_DIST: f32 = 20.0;
-
-fn draw_windows<'a>(windows: &'a WindowGroup) {
-    draw_rectangle(
-        windows.main.config.x,
-        windows.main.config.y,
-        windows.main.config.w,
-        windows.main.config.h,
-        Color::new(0.3, 0.3, 0.3, 0.5),
-    );
-}
-
-fn draw_vertices(vertices: Vec<Vec4f>) {
-    for v in vertices.into_iter() {
-        if let Some(proj) = v.get_proj() {
-            if v.selected {
-                draw_circle(proj.0, proj.1, 3.0, Color::new(0.0, 0.2, 0.4, 1.0));
-                draw_circle(proj.0, proj.1, 2.0, Color::new(0.0, 0.6, 1.0, 1.0));
-            } else {
-                draw_circle(proj.0, proj.1, 2.0, Color::new(0.1, 0.1, 0.1, 1.0));
-            }
-        }
-    }
-}
-
-fn draw_edges(obj: &Object) {
-    for e in (&obj.edges).into_iter() {
-        let a = obj.vertices[e.0].get_proj().unwrap();
-        let b = obj.vertices[e.1].get_proj().unwrap();
-        // println!("a: ({}, {}), b: ({}, {})", a.0, a.1, b.0, b.1);
-        if e.2 {
-            draw_line(a.0, a.1, b.0, b.1, 2.0, Color::new(0.1, 0.2, 0.4, 1.0));
-            draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.6, 1.0, 1.0));
-        } else {
-            draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.1, 0.1, 1.0));
-        }
-    }
-}
-
-fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool, hover: bool) {
-    draw_texture(
-        texture,
-        x,
-        y,
-        Color::new(1.0, 1.0, 1.0, 1.0)
-    );
-    let thickness = if selected { 6.0 } else { 4.0 };
-    draw_rectangle_lines(
-        x, y, w, h,
-        thickness,
-        Color::new(0.4, 0.4, 0.4, 1.0)
-    );
-
-    if hover {
-        draw_rectangle_lines(
-            x + thickness / 2.0, y + thickness / 2.0,
-            w - thickness, h - thickness,
-            2.0,
-            Color::new(0.3, 0.3, 0.3, 1.0)
-        );
-    }
-}
-
 fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> {
     let mut closest = None;
     let mut min_dist = None;
     for (i, v) in vertices.iter().enumerate() {
-        if let Some((px, py)) = v.get_proj() {
-            let d = dist2d(x, y, px, py);
+        if let Some(proj) = v.get_proj() {
+            let d = dist2d((x, y), proj);
             if let Some(min_d) = min_dist {
                 if d < min_d { min_dist = Some(d); closest = Some(i)}
             } else { min_dist = Some(d); closest = Some(i) }
@@ -125,9 +62,9 @@ fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> 
 
 fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4f>) -> Option<f32> {
     if let (Some(a), Some(b)) = (vertices[pair.0].get_proj(), vertices[pair.1].get_proj()) {
-        let d1 = dist2d(a.0, a.1, b.0, b.1);
-        let d2 = dist2d(a.0, a.1, x, y);
-        let d3 = dist2d(x, y, b.0, b.1);
+        let d1 = dist2d(a, b);
+        let d2 = dist2d(a, (x, y));
+        let d3 = dist2d((x, y), b);
         if d2.powi(2) > d1.powi(2) + d3.powi(2) { return None }
         if d3.powi(2) > d1.powi(2) + d2.powi(2) { return None }
         let s = (d1 + d2 + d3) / 2.0;
@@ -136,40 +73,18 @@ fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4
     } else { None }
 }
 
-fn find_closest_edge(x: f32, y: f32, obj: &Object) -> Option<usize> {
-    let mut closest = None;
-    let mut min_dist = None;
-    for (i, e) in obj.edges.iter().enumerate() {
-        if let Some(d) = dist_to_edge(x, y, e, &obj.vertices) {
-            if let Some(min_d) = min_dist {
-                if d < min_d { min_dist = Some(d); closest = Some(i)}
-            } else { min_dist = Some(d); closest = Some(i) }
-        }
+fn clear_selection(object: &mut Object) {
+    for v in &mut object.vertices {
+        v.selected = false;
     }
-    if let Some(d) = min_dist {
-        if d < MAX_DIST { closest }
-        else { None }
-    } else { None }
-}
-
-fn clear_selection_vertices(vertices: &mut Vec<Vec4f>, index: usize) {
-    for (i, v) in vertices.iter_mut().enumerate() {
-        v.selected = index == i;
+    for e in &mut object.edges {
+        e.2 = false;
     }
-}
-
-fn clear_selection_edges(edges: &mut Vec<(usize, usize, bool)>, index: usize) {
-    for (i, e) in edges.iter_mut().enumerate() {
-        e.2 = index == i;
+    for f in &mut object.faces {
+        f.2 = false;
     }
-}
-
-fn draw_cursor(cursor: &Cursor) {
-    // println!("{}", cursor.rect);
-    if cursor.rect {
-        draw_rectangle(cursor.conf.x, cursor.conf.y, cursor.conf.w, cursor.conf.h, Color::new(0.3, 0.3, 0.3, 1.0));
-    } else {
-        draw_poly(cursor.conf.x, cursor.conf.y, 10, cursor.conf.r, 0.0, Color::new(0.3, 0.3, 0.3, 1.0));
+    for c in &mut object.cells {
+        c.3 = false;
     }
 }
 
@@ -179,51 +94,6 @@ fn get_enabled_buttons_count(buttons: &Vec<(Texture2D, bool, bool)>) -> i32 {
         if b.1 { counter += 1; }
     }
     counter
-}
-
-fn draw_axes(axes: &Axes, w: f32, h: f32) {
-    let (off_x, off_y) = axes.offset;
-    let (off_x, off_y) = (off_x, off_y + h);
-    if let Some((x, y)) = axes.x.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 0.0, 1.0));
-        draw_text_ex("X", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
-    }
-    if let Some((x, y)) = axes.y.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(0.0, 1.0, 0.0, 1.0));
-        draw_text_ex("Y", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
-    }
-    if let Some((x, y)) = axes.z.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(0.0, 0.0, 1.0, 1.0));
-        draw_text_ex("Z", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
-    }
-    if let Some((x, y)) = axes.w.centered(w, h) {
-        draw_line(off_x, off_y, x + off_x, y + off_y, 2.0, Color::new(1.0, 0.0, 1.0, 1.0));
-        draw_text_ex("W", x + off_x + 10.0, y + off_y, TextParams {
-            font: Font::default(),
-            font_size: 18,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-            color: Color::new(0.3, 0.3, 0.3, 1.0),
-        })
-    }
 }
 
 #[macroquad::main("Polytope 4D")]
@@ -247,11 +117,13 @@ async fn main() {
     let mut angle = Angle::new();
     let mut is_lmb_down = false;
     let mut is_rmb_down = false;
-    let mut camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
-    let mut click_timer = Instant::now();
+    let camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
+    let mut lmb_click_timer = Instant::now();
+    let mut rmb_click_timer = Instant::now();
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
     let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
+    let mut motion_axes = MotionAxes::new();
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
@@ -283,19 +155,22 @@ async fn main() {
                 break;
             }
         }
-        if is_mouse_button_down(MouseButton::Left) {
-            mouse_down_event(&mut is_lmb_down, &mut click_timer);
-        } else if is_lmb_down { // lmb up event
-            if click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
-                lmb_click_event(hover, &mut selection_type_buttons, hover_i, &mut objects, (x_pos, y_pos));
-            }
-            is_lmb_down = false;
-        } else if is_mouse_button_down(MouseButton::Right) {
-            mouse_down_event(&mut is_rmb_down, &mut click_timer);
-            drag_event((x_pos, y_pos), (x_last, y_last), &mut angle, scroll_delta);
-        } else if is_rmb_down {
-            mouse_up_event(&mut is_rmb_down);
-        }
+        catch_mouse_event(
+            &mut is_lmb_down,
+            &mut is_rmb_down,
+            scroll_delta,
+            &mut lmb_click_timer,
+            &mut rmb_click_timer,
+            hover,
+            hover_i,
+            &mut selection_type_buttons,
+            &mut objects,
+            (x_pos, y_pos),
+            (x_last, y_last),
+            &mut motion_axes,
+            &mut angle,
+            &windows.main,
+        );
         draw_windows(&windows);
         cursor.move_to(x_pos, y_pos);
         let d = dist(Vec4f::new0(), camera.c);
@@ -307,7 +182,9 @@ async fn main() {
             }
         }
         axes.calc(&angle, &windows.main);
+        motion_axes.calc(&angle, &windows.main);
         draw_axes(&axes, windows.main.config.w, windows.main.config.h);
+        draw_motion_axes(&motion_axes);
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
         for i in 0..4 {

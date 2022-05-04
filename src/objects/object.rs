@@ -26,6 +26,43 @@ impl Object {
         }
     }
 
+    pub fn select_vertice(&mut self, index: usize) {
+        self.vertices[index].selected = true;
+        for e in &mut self.edges {
+            if index == e.0 && self.vertices[e.1].selected {
+                e.2 = true;
+            }
+            else if index == e.1 && self.vertices[e.0].selected {
+                e.2 = true;
+            }
+        }
+    }
+
+    pub fn deselect_vertice(&mut self, index: usize) {
+        self.vertices[index].selected = false;
+        for e in &mut self.edges {
+            if index == e.0 || index == e.1 {
+                e.2 = false;
+            }
+        }
+    }
+
+    pub fn select_edge(&mut self, index: usize) {
+        self.edges[index].2 = true;
+        let i1 = self.edges[index].0;
+        let i2 = self.edges[index].1;
+        self.select_vertice(i1);
+        self.select_vertice(i2);
+    }
+
+    pub fn deselect_edge(&mut self, index: usize) {
+        self.edges[index].2 = false;
+        let i1 = self.edges[index].0;
+        let i2 = self.edges[index].1;
+        self.deselect_vertice(i1);
+        self.deselect_vertice(i2);
+    }
+
     pub fn tesseract() -> Object {
         Object{
             vertices: vec![
