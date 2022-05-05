@@ -1,6 +1,6 @@
 use crate::window::MainWindow;
 use crate::angle::Angle;
-use super::{Vec4f, find_closest_edge, dist2d};
+use super::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Axes {
@@ -135,10 +135,10 @@ impl MotionAxes {
                 self.w,
             ],
             edges: vec![
-                (0, 1, false),
-                (0, 2, false),
-                (0, 3, false),
-                (0, 4, false),
+                Edge::new(0, 1),
+                Edge::new(0, 2),
+                Edge::new(0, 3),
+                Edge::new(0, 4),
             ],
             faces: vec![],
             cells: vec![],

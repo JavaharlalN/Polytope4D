@@ -8,6 +8,6 @@ impl Display for Vec4f {
 
 impl Display for Edge {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Edge(&{}, &{}, {}selected)", self.0, self.1, if self.2 { "" } else { "not " })
+        write!(f, "Edge(&{}, &{}, {}selected)", self.a, self.b, if self.selected { "" } else { "not " })
     }
 }

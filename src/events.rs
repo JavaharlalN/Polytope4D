@@ -66,8 +66,8 @@ pub fn copy_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
             }
         }
         for e in &obj.edges {
-            if e.2 {
-                e_indices[o].push((e.0, e.1));
+            if e.selected {
+                e_indices[o].push((e.a, e.b));
             }
         }
     }
@@ -75,21 +75,18 @@ pub fn copy_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
         for (i, v) in o.1.iter().enumerate() {
             clipboards[o.0].vertices.push(objects[o.0].vertices[*v]);
             for e in &mut e_indices[o.0] {
-                if e.0 == *v { e.0 = i; }
+                if (*e).0 == *v { e.0 = i; }
                 if e.1 == *v { e.1 = i; }
             }
         }
     }
     for o in e_indices.iter().enumerate() {
         for e in o.1 {
-            clipboards[o.0].edges.push((e.0, e.1, false));
+            clipboards[o.0].edges.push(Edge::new(e.0, e.1));
         }
     }
     for c in clipboards {
         *clipboard += c;
-    }
-    for e in &clipboard.edges {
-        println!("{}", e);
     }
 }
 
@@ -217,7 +214,7 @@ pub fn lmb_click_event(
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
-                    if e.2 { // if selected
+                    if e.selected {
                         obj.deselect_edge(index);
                     } else {
                         obj.select_edge(index);

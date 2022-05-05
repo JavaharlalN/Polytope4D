@@ -1,15 +1,13 @@
-use crate::angle::Angle;
+use crate::{angle::Angle, Edge};
 use crate::window::MainWindow;
 use super::Vec4f;
 use std::ops::{Add, AddAssign};
 
-#[derive(Debug, Clone)]
-pub struct Edge(usize, usize, bool);
 
 #[derive(Debug, Clone)]
 pub struct Object {
     pub vertices: Vec<Vec4f>,
-    pub edges: Vec<(usize, usize, bool)>,
+    pub edges: Vec<Edge>,
     pub faces: Vec<(
         (usize, usize, usize), // vertices
         (usize, usize, usize), // edges
@@ -37,14 +35,14 @@ impl Object {
 
     pub fn clear_selection(&mut self) {
         for v in &mut self.vertices { v.selected = false; }
-        for e in &mut self.edges { e.2 = false; }
+        for e in &mut self.edges { e.selected = false; }
         for f in &mut self.faces { f.2 = false; }
         for c in &mut self.cells { c.3 = false; }
     }
 
     pub fn select(&mut self) {
         for v in &mut self.vertices { v.selected = true; }
-        for e in &mut self.edges { e.2 = true; }
+        for e in &mut self.edges { e.selected = true; }
         for f in &mut self.faces { f.2 = true; }
         for c in &mut self.cells { c.3 = true; }
     }
@@ -58,11 +56,11 @@ impl Object {
     pub fn select_vertice(&mut self, index: usize) {
         self.vertices[index].selected = true;
         for e in &mut self.edges {
-            if index == e.0 && self.vertices[e.1].selected {
-                e.2 = true;
+            if index == e.a && self.vertices[e.b].selected {
+                e.selected = true;
             }
-            else if index == e.1 && self.vertices[e.0].selected {
-                e.2 = true;
+            else if index == e.b && self.vertices[e.a].selected {
+                e.selected = true;
             }
         }
     }
@@ -70,24 +68,24 @@ impl Object {
     pub fn deselect_vertice(&mut self, index: usize) {
         self.vertices[index].selected = false;
         for e in &mut self.edges {
-            if index == e.0 || index == e.1 {
-                e.2 = false;
+            if index == e.a || index == e.b {
+                e.selected = false;
             }
         }
     }
 
     pub fn select_edge(&mut self, index: usize) {
-        self.edges[index].2 = true;
-        let i1 = self.edges[index].0;
-        let i2 = self.edges[index].1;
+        self.edges[index].selected = true;
+        let i1 = self.edges[index].a;
+        let i2 = self.edges[index].b;
         self.select_vertice(i1);
         self.select_vertice(i2);
     }
 
     pub fn deselect_edge(&mut self, index: usize) {
-        self.edges[index].2 = false;
-        let i1 = self.edges[index].0;
-        let i2 = self.edges[index].1;
+        self.edges[index].selected = false;
+        let i1 = self.edges[index].a;
+        let i2 = self.edges[index].b;
         self.deselect_vertice(i1);
         self.deselect_vertice(i2);
     }
@@ -113,38 +111,38 @@ impl Object {
                 Vec4f::new( 1.0,  1.0,  1.0,  1.0), // 15
             ],
             edges: vec![
-                (0, 1, false),
-                (0, 2, false),
-                (0, 4, false),
-                (0, 8, false),
-                (1, 3, false),
-                (1, 5, false),
-                (1, 9, false),
-                (2, 3, false),
-                (2, 6, false),
-                (2, 10, false),
-                (3, 7, false),
-                (3, 11, false),
-                (4, 5, false),
-                (4, 6, false),
-                (4, 12, false),
-                (5, 7, false),
-                (5, 13, false),
-                (6, 7, false),
-                (6, 14, false),
-                (7, 15, false),
-                (8, 9, false),
-                (8, 10, false),
-                (8, 12, false),
-                (9, 11, false),
-                (9, 13, false),
-                (10, 11, false),
-                (10, 14, false),
-                (11, 15, false),
-                (12, 13, false),
-                (12, 14, false),
-                (13, 15, false),
-                (14, 15, false),
+                Edge::new(0, 1),
+                Edge::new(0, 2),
+                Edge::new(0, 4),
+                Edge::new(0, 8),
+                Edge::new(1, 3),
+                Edge::new(1, 5),
+                Edge::new(1, 9),
+                Edge::new(2, 3),
+                Edge::new(2, 6),
+                Edge::new(2, 10),
+                Edge::new(3, 7),
+                Edge::new(3, 11),
+                Edge::new(4, 5),
+                Edge::new(4, 6),
+                Edge::new(4, 12),
+                Edge::new(5, 7),
+                Edge::new(5, 13),
+                Edge::new(6, 7),
+                Edge::new(6, 14),
+                Edge::new(7, 15),
+                Edge::new(8, 9),
+                Edge::new(8, 10),
+                Edge::new(8, 12),
+                Edge::new(9, 11),
+                Edge::new(9, 13),
+                Edge::new(10, 11),
+                Edge::new(10, 14),
+                Edge::new(11, 15),
+                Edge::new(12, 13),
+                Edge::new(12, 14),
+                Edge::new(13, 15),
+                Edge::new(14, 15),
             ],
             faces: vec![],
             cells: vec![],
@@ -162,7 +160,7 @@ impl Add for Object {
             new.vertices.push(v.clone());
         }
         for e in other.edges {
-            new.edges.push((e.0 + count, e.1 + count, false));
+            new.edges.push(Edge::new(e.a + count, e.b + count));
         }
         return new;
     }
@@ -175,7 +173,7 @@ impl AddAssign for Object {
             self.vertices.push(v.clone());
         }
         for e in other.edges {
-            self.edges.push((e.0 + count, e.1 + count, false));
+            self.edges.push(Edge::new(e.a + count, e.b + count));
         }
     }
 }

@@ -5,6 +5,7 @@ mod vector;
 mod object;
 mod camera;
 mod axes;
+mod edge;
 
 pub use std::fmt::Display;
 pub use std::fmt::Result;
@@ -13,6 +14,7 @@ pub use object::Object;
 pub use vector::*;
 pub use camera::*;
 pub use axes::*;
+pub use edge::*;
 
 use crate::dist_to_edge;
 

@@ -60,8 +60,8 @@ fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> 
     } else { None }
 }
 
-fn dist_to_edge(x: f32, y: f32, pair: &(usize, usize, bool), vertices: &Vec<Vec4f>) -> Option<f32> {
-    if let (Some(a), Some(b)) = (vertices[pair.0].get_proj(), vertices[pair.1].get_proj()) {
+fn dist_to_edge(x: f32, y: f32, pair: &Edge, vertices: &Vec<Vec4f>) -> Option<f32> {
+    if let (Some(a), Some(b)) = (vertices[pair.a].get_proj(), vertices[pair.b].get_proj()) {
         let d1 = dist2d(a, b);
         let d2 = dist2d(a, (x, y));
         let d3 = dist2d((x, y), b);
@@ -78,7 +78,7 @@ fn clear_selection(object: &mut Object) {
         v.selected = false;
     }
     for e in &mut object.edges {
-        e.2 = false;
+        e.selected = false;
     }
     for f in &mut object.faces {
         f.2 = false;
