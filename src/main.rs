@@ -124,6 +124,7 @@ async fn main() {
     let (mut x_pos, mut y_pos) = mouse_position();
     let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
     let mut motion_axes = MotionAxes::new();
+    let mut clipboard = Object::empty();
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
@@ -171,6 +172,7 @@ async fn main() {
             &mut angle,
             &windows.main,
         );
+        catch_keyboard_event(&mut objects, &mut clipboard);
         draw_windows(&windows);
         cursor.move_to(x_pos, y_pos);
         let d = dist(Vec4f::new0(), camera.c);

@@ -43,6 +43,59 @@ pub fn catch_mouse_event(
     }
 }
 
+pub fn catch_keyboard_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
+    if is_key_pressed(KeyCode::F) {
+        extrude_event(objects);
+    } else if is_key_pressed(KeyCode::C) && is_key_down(KeyCode::LeftControl) {
+        copy_event(objects, clipboard);
+    }
+}
+
+pub fn copy_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
+    let mut v_indices = vec![];
+    let mut e_indices = vec![];
+    let mut clipboards = vec![];
+    *clipboard = Object::empty();
+    for (o, obj) in objects.iter_mut().enumerate() {
+        v_indices.push(vec![]);
+        e_indices.push(vec![]);
+        clipboards.push(Object::empty());
+        for (i, v) in obj.vertices.iter_mut().enumerate() {
+            if v.selected {
+                v_indices[o].push(i);
+            }
+        }
+        for e in &obj.edges {
+            if e.2 {
+                e_indices[o].push((e.0, e.1));
+            }
+        }
+    }
+    for o in v_indices.iter().enumerate() {
+        for (i, v) in o.1.iter().enumerate() {
+            clipboards[o.0].vertices.push(objects[o.0].vertices[*v]);
+            for e in &mut e_indices[o.0] {
+                if e.0 == *v { e.0 = i; }
+                if e.1 == *v { e.1 = i; }
+            }
+        }
+    }
+    for o in e_indices.iter().enumerate() {
+        for e in o.1 {
+            clipboards[o.0].edges.push((e.0, e.1, false));
+        }
+    }
+    for c in clipboards {
+        *clipboard += c;
+    }
+    for e in &clipboard.edges {
+        println!("{}", e);
+    }
+}
+
+pub fn extrude_event(objects: &mut Vec<Object>) {
+}
+
 pub fn mouse_move_event(
     xy: (f32, f32),
     motion_axes: &mut MotionAxes,

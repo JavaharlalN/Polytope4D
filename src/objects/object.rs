@@ -1,7 +1,12 @@
 use crate::angle::Angle;
 use crate::window::MainWindow;
 use super::Vec4f;
+use std::ops::{Add, AddAssign};
 
+#[derive(Debug, Clone)]
+pub struct Edge(usize, usize, bool);
+
+#[derive(Debug, Clone)]
 pub struct Object {
     pub vertices: Vec<Vec4f>,
     pub edges: Vec<(usize, usize, bool)>,
@@ -20,6 +25,30 @@ pub struct Object {
 }
 
 impl Object {
+    pub fn empty() -> Object {
+        Object {
+            vertices: vec![],
+            edges: vec![],
+            faces: vec![],
+            cells: vec![],
+            name: None,
+        }
+    }
+
+    pub fn clear_selection(&mut self) {
+        for v in &mut self.vertices { v.selected = false; }
+        for e in &mut self.edges { e.2 = false; }
+        for f in &mut self.faces { f.2 = false; }
+        for c in &mut self.cells { c.3 = false; }
+    }
+
+    pub fn select(&mut self) {
+        for v in &mut self.vertices { v.selected = true; }
+        for e in &mut self.edges { e.2 = true; }
+        for f in &mut self.faces { f.2 = true; }
+        for c in &mut self.cells { c.3 = true; }
+    }
+
     pub fn calc_vertices(&mut self, a: &Angle, d: f32,  main: &MainWindow) {
         for (_, v) in self.vertices.iter_mut().enumerate() {
             v.calc(a, d, main);
@@ -120,6 +149,33 @@ impl Object {
             faces: vec![],
             cells: vec![],
             name: Some("Tessteract".to_string()),
+        }
+    }
+}
+
+impl Add for Object {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        let mut new = self.clone();
+        let count = self.vertices.len();
+        for v in other.vertices {
+            new.vertices.push(v.clone());
+        }
+        for e in other.edges {
+            new.edges.push((e.0 + count, e.1 + count, false));
+        }
+        return new;
+    }
+}
+
+impl AddAssign for Object {
+    fn add_assign(&mut self, other: Self) {
+        let count = self.vertices.len();
+        for v in other.vertices {
+            self.vertices.push(v.clone());
+        }
+        for e in other.edges {
+            self.edges.push((e.0 + count, e.1 + count, false));
         }
     }
 }
