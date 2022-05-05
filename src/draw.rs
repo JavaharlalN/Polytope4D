@@ -122,10 +122,10 @@ pub fn draw_vertices(vertices: Vec<Vec4f>) {
 
 pub fn draw_edges(obj: &Object) {
     for e in (&obj.edges).into_iter() {
-        let a = obj.vertices[e.0].get_proj().unwrap();
-        let b = obj.vertices[e.1].get_proj().unwrap();
+        let a = obj.vertices[e.a].get_proj().unwrap();
+        let b = obj.vertices[e.b].get_proj().unwrap();
         // println!("a: ({}, {}), b: ({}, {})", a.0, a.1, b.0, b.1);
-        if e.2 {
+        if e.selected {
             draw_line(a.0, a.1, b.0, b.1, 2.0, Color::new(0.1, 0.2, 0.4, 1.0));
             draw_line(a.0, a.1, b.0, b.1, 1.0, Color::new(0.1, 0.6, 1.0, 1.0));
         } else {

@@ -43,6 +43,103 @@ pub fn catch_mouse_event(
     }
 }
 
+pub fn catch_keyboard_event(
+    objects: &mut Vec<Object>,
+    clipboard: &mut Object,
+    motion_axes: &mut MotionAxes,
+) {
+    if is_key_pressed(KeyCode::E) {
+        extrude_event(objects);
+    } else if is_key_pressed(KeyCode::Delete) {
+        delete_event(objects, motion_axes);
+    } else if is_key_down(KeyCode::LeftControl) {
+        if is_key_pressed(KeyCode::C) { copy_event(objects, clipboard); }
+        else if is_key_pressed(KeyCode::V) { paste_event(objects, clipboard); }
+    }
+}
+
+pub fn delete_event(
+    objects: &mut Vec<Object>,
+    motion_axes: &mut MotionAxes,
+) {
+    for obj in objects {
+        let len = obj.vertices.len();
+        for i in 1..len + 1 {
+            obj.delete_vertex(len - i);
+        }
+    }
+    motion_axes.move_to(None);
+}
+
+/// Copies selected vertices, edges and faces from objects
+/// and writes to specified clipboard.
+pub fn copy_event(objects: &Vec<Object>, clipboard: &mut Object) {
+    let mut v_indices = vec![];
+    let mut e_indices = vec![];
+    let mut clipboards = vec![];
+    *clipboard = Object::empty();
+    for (o, obj) in objects.iter().enumerate() {
+        v_indices.push(vec![]);
+        e_indices.push(vec![]);
+        clipboards.push(Object::empty());
+        for (i, v) in obj.vertices.iter().enumerate() {
+            if v.selected {
+                v_indices[o].push(i);
+            }
+        }
+        for e in &obj.edges {
+            if e.selected {
+                e_indices[o].push((e.a, e.b));
+            }
+        }
+    }
+    for o in v_indices.iter().enumerate() {
+        for (i, v) in o.1.iter().enumerate() {
+            clipboards[o.0].vertices.push(objects[o.0].vertices[*v]);
+            for e in &mut e_indices[o.0] {
+                if (*e).0 == *v { e.0 = i; }
+                if e.1 == *v { e.1 = i; }
+            }
+        }
+    }
+    for o in e_indices.iter().enumerate() {
+        for e in o.1 {
+            clipboards[o.0].edges.push(Edge::new(e.0, e.1));
+        }
+    }
+    for c in clipboards {
+        *clipboard += c;
+    }
+}
+
+pub fn paste_event(objects: &mut Vec<Object>, clipboard: &Object) {
+    for obj in objects.iter_mut() {
+        obj.clear_selection();
+    }
+    let mut new_data = clipboard.clone();
+    new_data.select();
+    objects.push(new_data);
+}
+
+pub fn extrude_event(objects: &mut Vec<Object>) {
+    for i in 0..objects.len() {
+        let mut buffer = Object::empty();
+        let vertices_count = objects[i].vertices.len();
+        copy_event(&vec![objects[i].clone()], &mut buffer);
+        // objects[i].clear_selection();
+        buffer.select();
+        objects[i] += buffer;
+        let mut counter = 0;
+        for j in 0..vertices_count {
+            if objects[i].vertices[j].selected {
+                objects[i].edges.push(Edge::new(j, vertices_count + counter));
+                counter += 1;
+            }
+        }
+        objects[i].deselect_first_n_vertices(vertices_count);
+    }
+}
+
 pub fn mouse_move_event(
     xy: (f32, f32),
     motion_axes: &mut MotionAxes,
@@ -164,7 +261,7 @@ pub fn lmb_click_event(
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
-                    if e.2 { // if selected
+                    if e.selected {
                         obj.deselect_edge(index);
                     } else {
                         obj.select_edge(index);
@@ -176,7 +273,7 @@ pub fn lmb_click_event(
             }
         }
     }
-    motion_axes.pos = get_center(objects);
+    motion_axes.move_to(get_center(objects));
 }
 
 pub fn resize_event<'a>(windows: &'a mut WindowGroup) {
