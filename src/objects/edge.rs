@@ -10,4 +10,12 @@ impl Edge {
     pub fn new(a: usize, b: usize) -> Self {
         Edge { a, b, selected: false }
     }
+
+    pub fn clone_and_select(&self, select: bool) -> Self {
+        Edge {
+            a: self.a,
+            b: self.b,
+            selected: select,
+        }
+    }
 }

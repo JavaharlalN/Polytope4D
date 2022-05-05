@@ -105,8 +105,9 @@ impl MotionAxes {
         return Vec4f::new0();
     }
 
-    pub fn move_to(&mut self, pos: Vec4f) {
-        self.pos = Some(pos);
+    pub fn move_to(&mut self, pos: Option<Vec4f>) {
+        if let Some(_) = pos { self.pos = pos; }
+        else { self.ungrab(); self.pos = None; }
     }
 
     fn select_axe(&mut self, index: usize) {

@@ -40,11 +40,12 @@ impl Object {
         for c in &mut self.cells { c.3 = false; }
     }
 
-    pub fn select(&mut self) {
+    pub fn select(&mut self) -> &mut Self {
         for v in &mut self.vertices { v.selected = true; }
         for e in &mut self.edges { e.selected = true; }
         for f in &mut self.faces { f.2 = true; }
         for c in &mut self.cells { c.3 = true; }
+        self
     }
 
     pub fn calc_vertices(&mut self, a: &Angle, d: f32,  main: &MainWindow) {
@@ -88,6 +89,12 @@ impl Object {
         let i2 = self.edges[index].b;
         self.deselect_vertice(i1);
         self.deselect_vertice(i2);
+    }
+
+    pub fn deselect_first_n_vertices(&mut self, n: usize) {
+        for i in 0..n {
+            self.deselect_vertice(i);
+        }
     }
 
     pub fn tesseract() -> Object {
@@ -173,7 +180,7 @@ impl AddAssign for Object {
             self.vertices.push(v.clone());
         }
         for e in other.edges {
-            self.edges.push(Edge::new(e.a + count, e.b + count));
+            self.edges.push(Edge::new(e.a + count, e.b + count).clone_and_select(e.selected));
         }
     }
 }

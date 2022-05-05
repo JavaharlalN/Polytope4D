@@ -44,23 +44,26 @@ pub fn catch_mouse_event(
 }
 
 pub fn catch_keyboard_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
-    if is_key_pressed(KeyCode::F) {
+    if is_key_pressed(KeyCode::E) {
         extrude_event(objects);
-    } else if is_key_pressed(KeyCode::C) && is_key_down(KeyCode::LeftControl) {
-        copy_event(objects, clipboard);
+    } else if is_key_down(KeyCode::LeftControl) {
+        if is_key_pressed(KeyCode::C) { copy_event(objects, clipboard); }
+        else if is_key_pressed(KeyCode::V) { paste_event(objects, clipboard); }
     }
 }
 
-pub fn copy_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
+/// Copies selected vertices, edges and faces from objects
+/// and writes to specified clipboard.
+pub fn copy_event(objects: &Vec<Object>, clipboard: &mut Object) {
     let mut v_indices = vec![];
     let mut e_indices = vec![];
     let mut clipboards = vec![];
     *clipboard = Object::empty();
-    for (o, obj) in objects.iter_mut().enumerate() {
+    for (o, obj) in objects.iter().enumerate() {
         v_indices.push(vec![]);
         e_indices.push(vec![]);
         clipboards.push(Object::empty());
-        for (i, v) in obj.vertices.iter_mut().enumerate() {
+        for (i, v) in obj.vertices.iter().enumerate() {
             if v.selected {
                 v_indices[o].push(i);
             }
@@ -90,7 +93,32 @@ pub fn copy_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
     }
 }
 
+pub fn paste_event(objects: &mut Vec<Object>, clipboard: &Object) {
+    for obj in objects.iter_mut() {
+        obj.clear_selection();
+    }
+    let mut new_data = clipboard.clone();
+    new_data.select();
+    objects.push(new_data);
+}
+
 pub fn extrude_event(objects: &mut Vec<Object>) {
+    for i in 0..objects.len() {
+        let mut buffer = Object::empty();
+        let vertices_count = objects[i].vertices.len();
+        copy_event(&vec![objects[i].clone()], &mut buffer);
+        // objects[i].clear_selection();
+        buffer.select();
+        objects[i] += buffer;
+        let mut counter = 0;
+        for j in 0..vertices_count {
+            if objects[i].vertices[j].selected {
+                objects[i].edges.push(Edge::new(j, vertices_count + counter));
+                counter += 1;
+            }
+        }
+        objects[i].deselect_first_n_vertices(vertices_count);
+    }
 }
 
 pub fn mouse_move_event(
@@ -226,7 +254,7 @@ pub fn lmb_click_event(
             }
         }
     }
-    motion_axes.pos = get_center(objects);
+    motion_axes.move_to(get_center(objects));
 }
 
 pub fn resize_event<'a>(windows: &'a mut WindowGroup) {
