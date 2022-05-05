@@ -43,13 +43,32 @@ pub fn catch_mouse_event(
     }
 }
 
-pub fn catch_keyboard_event(objects: &mut Vec<Object>, clipboard: &mut Object) {
+pub fn catch_keyboard_event(
+    objects: &mut Vec<Object>,
+    clipboard: &mut Object,
+    motion_axes: &mut MotionAxes,
+) {
     if is_key_pressed(KeyCode::E) {
         extrude_event(objects);
+    } else if is_key_pressed(KeyCode::Delete) {
+        delete_event(objects, motion_axes);
     } else if is_key_down(KeyCode::LeftControl) {
         if is_key_pressed(KeyCode::C) { copy_event(objects, clipboard); }
         else if is_key_pressed(KeyCode::V) { paste_event(objects, clipboard); }
     }
+}
+
+pub fn delete_event(
+    objects: &mut Vec<Object>,
+    motion_axes: &mut MotionAxes,
+) {
+    for obj in objects {
+        let len = obj.vertices.len();
+        for i in 1..len + 1 {
+            obj.delete_vertex(len - i);
+        }
+    }
+    motion_axes.move_to(None);
 }
 
 /// Copies selected vertices, edges and faces from objects

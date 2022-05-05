@@ -172,7 +172,7 @@ async fn main() {
             &mut angle,
             &windows.main,
         );
-        catch_keyboard_event(&mut objects, &mut clipboard);
+        catch_keyboard_event(&mut objects, &mut clipboard, &mut motion_axes);
         draw_windows(&windows);
         cursor.move_to(x_pos, y_pos);
         let d = dist(Vec4f::new0(), camera.c);

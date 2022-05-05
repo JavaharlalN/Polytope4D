@@ -97,6 +97,20 @@ impl Object {
         }
     }
 
+    pub fn delete_vertex(&mut self, index: usize) {
+        if !self.vertices[index].selected { return; }
+        self.vertices.remove(index);
+        let mut indices = vec![];
+        for (i, e) in self.edges.iter_mut().enumerate() {
+            if index == e.a || index == e.b { indices.push(i); }
+            if e.a > index { e.a -= 1; }
+            if e.b > index { e.b -= 1; }
+        }
+        for i in indices.iter().rev() {
+            self.edges.remove(*i);
+        }
+    }
+
     pub fn tesseract() -> Object {
         Object{
             vertices: vec![
