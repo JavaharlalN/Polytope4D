@@ -52,10 +52,26 @@ pub fn catch_keyboard_event(
         extrude_event(objects);
     } else if is_key_pressed(KeyCode::Delete) {
         delete_event(objects, motion_axes);
+    } else if is_key_pressed(KeyCode::F) {
+        fill_event(objects, motion_axes);
     } else if is_key_down(KeyCode::LeftControl) {
         if is_key_pressed(KeyCode::C) { copy_event(objects, clipboard); }
         else if is_key_pressed(KeyCode::V) { paste_event(objects, clipboard); }
     }
+}
+
+pub fn fill_event(
+    objects: &mut Vec<Object>,
+    motion_axes: &mut MotionAxes,
+) {
+    for obj in objects.iter_mut() {
+        let indices = obj.get_selected_vertices();
+        if indices.len() != 2 { return; }
+        else {
+            obj.edges.push(Edge::new(indices[0], indices[1]).clone_and_select(true));
+        }
+    }
+    motion_axes.move_to(get_center(objects));
 }
 
 pub fn delete_event(
