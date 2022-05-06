@@ -97,6 +97,16 @@ impl Object {
         }
     }
 
+    pub fn get_selected_vertices(&self) -> Vec<usize> {
+        let mut indices = vec![];
+        for (i, v) in self.vertices.iter().enumerate() {
+            if v.selected {
+                indices.push(i);
+            }
+        }
+        indices
+    }
+
     pub fn delete_vertex(&mut self, index: usize) {
         if !self.vertices[index].selected { return; }
         self.vertices.remove(index);
