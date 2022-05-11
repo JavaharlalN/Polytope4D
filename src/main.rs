@@ -90,6 +90,10 @@ async fn main() {
         (Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None), false, false),
         (Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None), false, false),
     ];
+    let mut save_button = (
+        Texture2D::from_file_with_format(std::fs::read("sprites/save.png").unwrap().as_slice(), None),
+        false
+    );
     let mut windows = WindowGroup{
         main: MainWindow::new(screen_width(), screen_height()),
         scene: SceneWindow::new(screen_width(), screen_height()),
