@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 macroquad = "0.3.15"
-sapp-linux = "0.1.14"
