@@ -127,11 +127,11 @@ async fn main() {
         let mut hover = false;
         let mut hover_i = selection_type_buttons.len();
         for i in 0..4 {
-            let xb = windows.main.config.w - 114.0 + 28.0 * i as f32;
+            let xb = windows.main.config.w - 120.0 + 30.0 * i as f32;
             hover = cursor.intersect_with_box(
                 xb,
                 windows.main.config.y,
-                28.0,
+                30.0,
                 30.0,
             );
 
@@ -178,7 +178,7 @@ async fn main() {
         if !hover { cursor.reset(); }
         for i in 0..4 {
             let btn = selection_type_buttons.get_mut(i).unwrap();
-            let xb = windows.main.config.w - 114.0 + 28.0 * i as f32;
+            let xb = windows.main.config.w - 120.0 + 30.0 * i as f32;
             btn.2 = i == hover_i;
             draw_button(
                 xb,
@@ -190,12 +190,22 @@ async fn main() {
                 btn.2,
             );
         }
+        draw_button(
+            0.0,
+            0.0,
+            20.0,
+            20.0,
+            save_button.0,
+            false,
+            save_button.1,
+        );
 
         if cursor_transform_timer.elapsed().as_millis() >= CUR_TRANSFORM_TO {
             cursor_transform_timer = Instant::now();
             cursor.next();
             // println!("{}", cursor.conf.w);
         }
+        draw_cursor_overlay(cursor);
         next_frame().await
     }
 }
