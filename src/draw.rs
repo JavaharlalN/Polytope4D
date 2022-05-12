@@ -134,26 +134,34 @@ pub fn draw_edges(obj: &Object) {
     }
 }
 
+pub fn draw_cursor_overlay(cursor: Cursor) {
+    draw_circle(
+        cursor.real.x,
+        cursor.real.y,
+        cursor.real.r,
+        Color::new(0.3, 0.3, 0.3, 0.4),
+    );
+}
+
 pub fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool, hover: bool) {
+    let k = if hover { 0.6 } else { 0.5 };
+    draw_rectangle(
+        x, y, w, h,
+        // thickness,
+        Color::new(k, k, k, 1.0)
+    );
     draw_texture(
         texture,
         x,
         y,
         Color::new(1.0, 1.0, 1.0, 1.0)
     );
-    let thickness = if selected { 6.0 } else { 4.0 };
-    draw_rectangle_lines(
-        x, y, w, h,
-        thickness,
-        Color::new(0.4, 0.4, 0.4, 1.0)
-    );
-
-    if hover {
-        draw_rectangle_lines(
-            x + thickness / 2.0, y + thickness / 2.0,
-            w - thickness, h - thickness,
+    if selected {
+        draw_line(
+            x, y + h - 1.0,
+            x + w, y + h - 1.0,
             2.0,
-            Color::new(0.3, 0.3, 0.3, 1.0)
+            Color::new(0.0, 0.6, 1.0, 1.0),
         );
     }
 }
