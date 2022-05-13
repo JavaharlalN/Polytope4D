@@ -1,5 +1,5 @@
-use super::{ObjectField, Button};
-use crate::objects::Object;
+use super::ObjectField;
+use crate::{objects::Object, button::Button};
 
 #[derive(Debug, Copy, Clone)]
 pub enum HintAlign {
@@ -13,6 +13,36 @@ pub enum HintAlign {
 pub enum Window {
     Main(MainWindow),
     Scene(SceneWindow),
+}
+
+impl Window {
+    pub fn config(&self) -> Parameters {
+        match self {
+            Window::Main(w) => w.config.clone(),
+            Window::Scene(w) => w.config.clone(),
+        }
+    }
+
+    pub fn pos(&self) -> (f32, f32) {
+        match self {
+            Window::Main(w) => (w.config.x, w.config.y),
+            Window::Scene(w) => (w.config.x, w.config.y),
+        }
+    }
+
+    pub fn size(&self) -> (f32, f32) {
+        match self {
+            Window::Main(w) => (w.config.w, w.config.h),
+            Window::Scene(w) => (w.config.w, w.config.h),
+        }
+    }
+
+    pub fn set_size(&mut self, w: f32, h: f32) {
+        match self {
+            Window::Main(win) => {win.config.w = w; win.config.h = h},
+            Window::Scene(win) => {win.config.w = w; win.config.h = h},
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -52,8 +82,8 @@ pub struct SceneWindow {
 }
 
 pub struct WindowGroup {
-    pub main: MainWindow,
-    pub scene: SceneWindow,
+    pub main: Window,
+    pub scene: Window,
 }
 
 impl WindowGroup {
