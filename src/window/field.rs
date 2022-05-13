@@ -44,6 +44,7 @@ impl RadioButtonGroup {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct ObjectField<T> {
     pub parent: T,
     pub y:f32,
