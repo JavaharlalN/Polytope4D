@@ -99,10 +99,10 @@ pub fn draw_axes(axes: &Axes, w: f32, h: f32) {
 
 pub fn draw_windows<'a>(windows: &'a WindowGroup) {
     draw_rectangle(
-        windows.main.config.x,
-        windows.main.config.y,
-        windows.main.config.w,
-        windows.main.config.h,
+        windows.main.config().x,
+        windows.main.config().y,
+        windows.main.config().w,
+        windows.main.config().h,
         Color::new(0.3, 0.3, 0.3, 0.5),
     );
 }
@@ -143,23 +143,25 @@ pub fn draw_cursor_overlay(cursor: Cursor) {
     );
 }
 
-pub fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool, hover: bool) {
-    let k = if hover { 0.6 } else { 0.5 };
+pub fn draw_button(button: &Button, window: &Window) {
+    let k = if button.is_hover() { 0.6 } else { 0.5 };
+    let (x, y) = button.get_pos(window);
+    let (w, h) = button.size();
     draw_rectangle(
-        x, y, w, h,
+        x, y,
+        w, h,
         // thickness,
         Color::new(k, k, k, 1.0)
     );
     draw_texture(
-        texture,
-        x,
-        y,
+        button.texture(),
+        x, y,
         Color::new(1.0, 1.0, 1.0, 1.0)
     );
-    if selected {
+    if button.is_active() {
         draw_line(
-            x, y + h - 1.0,
-            x + w, y + h - 1.0,
+            x,     h - 1.0,
+            x + w, h - 1.0,
             2.0,
             Color::new(0.0, 0.6, 1.0, 1.0),
         );
