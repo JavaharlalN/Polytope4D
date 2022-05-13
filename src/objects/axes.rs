@@ -1,4 +1,4 @@
-use crate::window::MainWindow;
+use crate::window::Window;
 use crate::angle::Angle;
 use super::*;
 
@@ -37,7 +37,7 @@ impl MotionAxes {
         }
     }
 
-    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
+    pub fn calc(&mut self, a: &Angle, window: &Window) {
         if let Some(mut pos) = self.pos {
             let x = (self.x + pos).calc(a, 5.0, window);
             let y = (self.y + pos).calc(a, 5.0, window);
@@ -76,7 +76,7 @@ impl MotionAxes {
         axe: Vec4f,
         xy_delta: (f32, f32),
         a: &Angle,
-        window: &MainWindow
+        window: &Window
     ) -> Vec4f {
         if let (Some(proj), Some(pos)) = (axe.get_proj(), self.pos) {
             if let Some(pos_proj) = pos.get_proj() {
@@ -96,7 +96,7 @@ impl MotionAxes {
         return Vec4f::new0();
     }
 
-    pub fn get_motion_delta(&mut self, xy_delta: (f32, f32), a: &Angle, window: &MainWindow) -> Vec4f {
+    pub fn get_motion_delta(&mut self, xy_delta: (f32, f32), a: &Angle, window: &Window) -> Vec4f {
         if !self.any_axe_selected() { return Vec4f::new0(); }
         if self.x.selected { return self.get_motion_delta_for_axe(self.x, xy_delta, a, window); }
         if self.y.selected { return self.get_motion_delta_for_axe(self.y, xy_delta, a, window); }
@@ -166,7 +166,7 @@ impl Axes {
         }
     }
 
-    pub fn calc(&mut self, a: &Angle, window: &MainWindow) {
+    pub fn calc(&mut self, a: &Angle, window: &Window) {
         self.x.calc(a, 8.0, window);
         self.y.calc(a, 8.0, window);
         self.z.calc(a, 8.0, window);
