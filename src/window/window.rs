@@ -9,10 +9,10 @@ pub enum HintAlign {
     BOTTOM,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum WINDOWS {
-    MAIN = 0,
-    SCENE = 1,
+#[derive(Debug, Clone)]
+pub enum Window {
+    Main(MainWindow),
+    Scene(SceneWindow),
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -20,7 +20,6 @@ pub struct HintArea {
     pub w: f32,
     pub h: f32,
     pub align: HintAlign,
-    pub window: u16,
     pub busy: bool,
     pub visible: bool,
 }
@@ -33,7 +32,6 @@ pub struct Parameters {
     pub h: f32,
     pub grabbed: bool,
     pub name: String,
-    pub id: u8,
 }
 
 #[derive(Debug, Clone)]
@@ -42,6 +40,7 @@ pub struct MainWindow {
     pub buttons: Vec<Button>,
 }
 
+#[derive(Debug, Clone)]
 pub struct SceneWindow {
     pub config: Parameters,
     pub objects: Vec<Object>,
@@ -76,7 +75,6 @@ impl MainWindow {
                 h: screen_height,
                 grabbed: false,
                 name: "Main".to_string(),
-                id: WINDOWS::MAIN as u8,
             },
             buttons: vec![],
         }
@@ -89,8 +87,7 @@ impl MainWindow {
 }
 
 impl HintArea {
-    pub fn new(side: f32, win_type: WINDOWS, align: HintAlign) -> HintArea {
-
+    pub fn new(side: f32, align: HintAlign) -> HintArea {
         HintArea{
             w: match align {
                 HintAlign::LEFT => side,
@@ -103,7 +100,6 @@ impl HintArea {
                 _ => 200.0
             },
             align,
-            window: win_type as u16,
             busy: false,
             visible: false,
         }
@@ -120,14 +116,13 @@ impl SceneWindow {
                 h: 200.0,
                 grabbed: false,
                 name: "Scene".to_string(),
-                id: WINDOWS::SCENE as u8,
             },
             objects: Vec::new(),
             fields: Vec::new(),
-            left_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::LEFT),
-            right_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::RIGHT),
-            bottom_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::BOTTOM),
-            top_area: HintArea::new(50.0, WINDOWS::SCENE, HintAlign::TOP),
+            left_area: HintArea::new(50.0, HintAlign::LEFT),
+            right_area: HintArea::new(50.0, HintAlign::RIGHT),
+            bottom_area: HintArea::new(50.0, HintAlign::BOTTOM),
+            top_area: HintArea::new(50.0, HintAlign::TOP),
         }
     }
 }
