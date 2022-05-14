@@ -62,6 +62,14 @@ impl Vec4f {
         Vec4f::newf(0.0)
     }
 
+	pub fn as_tuple(&self) -> (f32, f32, f32, f32) {
+		(self.x, self.y, self.z, self.w)
+	}
+	
+	pub fn as_vec(&self) -> Vec<f32> {
+		vec![self.x, self.y, self.z, self.w]
+	}
+
     pub fn dot(self, v: Vec4f) -> f32 {
         self.x * v.x + self.y * v.y + self.z * v.z + self.w * v.w
     }

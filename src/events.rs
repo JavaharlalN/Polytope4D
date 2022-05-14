@@ -30,7 +30,7 @@ pub fn catch_mouse_event(
                 motion_axes,
             );
         }
-		lmb_up_event(buttons);
+		lmb_up_event(buttons, objects);
         *is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
         rmb_down_event(is_rmb_down, rmb_click_timer, motion_axes);
@@ -43,10 +43,12 @@ pub fn catch_mouse_event(
     }
 }
 
-pub fn lmb_up_event(buttons: &mut Vec<Button>) {
+// TODO: merge to mouse_up_event
+pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &Vec<Object>) {
     for btn in buttons {
         if btn.is_active() && btn.is_click_button() {
             btn.set_active(false);
+			save(objects);
         }
     }
 }
@@ -255,6 +257,7 @@ pub fn lmb_click_event(
     xy: (f32, f32),
     motion_axes: &mut MotionAxes,
 ) {
+	println!("");
     if hover && hover_i < buttons.len() && buttons[hover_i].is_check_button() {
         if is_key_down(KeyCode::LeftShift) {
             if get_enabled_buttons_count(buttons) > 1 {
@@ -271,7 +274,7 @@ pub fn lmb_click_event(
         }
     }
     for obj in objects.iter_mut() {
-        if buttons[0].is_hover() {
+        if buttons[0].is_active() {
             if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
                 let v = obj.vertices.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
