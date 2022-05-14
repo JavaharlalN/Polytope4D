@@ -1,3 +1,6 @@
+use crate::window::Window;
+use super::Button;
+
 const STEPS: u8 = 10;
 
 #[derive(Copy, Clone)]
@@ -53,13 +56,15 @@ impl Cursor {
         }
     }
 
-    pub fn intersect_with_box(
+    pub fn intersect_with_button(
         self,
-        xb: f32, yb: f32,
-        w: f32, h: f32,
+        button: &Button,
+        window: &Window,
     ) -> bool {
-        self.real.x >= xb && self.real.x < xb + w &&
-        self.real.y >= yb && self.real.y < yb + h 
+        let (x, y) = button.get_pos(window);
+        let (w, h) = button.size();
+        self.real.x >= x && self.real.x < x + w &&
+        self.real.y >= y && self.real.y < y + h
     }
 
     pub fn next(&mut self) {

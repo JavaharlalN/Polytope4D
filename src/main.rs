@@ -2,18 +2,19 @@ mod cursor;
 mod angle;
 mod draw;
 mod events;
+mod button;
 pub mod objects;
 pub mod window;
 use draw::*;
 use angle::*;
 use events::*;
+use button::*;
 use macroquad::prelude::Font;
 use macroquad::prelude::TextParams;
 use macroquad::prelude::Texture2D;
 use macroquad::prelude::draw_rectangle;
 use macroquad::prelude::clear_background;
 use macroquad::prelude::Color;
-use macroquad::prelude::draw_rectangle_lines;
 use macroquad::prelude::draw_text_ex;
 use macroquad::prelude::draw_texture;
 use macroquad::prelude::screen_width;
@@ -73,26 +74,53 @@ fn clear_selection(object: &mut Object) {
     }
 }
 
-fn get_enabled_buttons_count(buttons: &Vec<(Texture2D, bool, bool)>) -> i32 {
+pub fn get_enabled_buttons_count(buttons: &Vec<Button>) -> i32 {
     let mut counter = 0;
     for b in buttons {
-        if b.1 { counter += 1; }
+        if b.is_active() { counter += 1; }
     }
     counter
+}
+
+pub fn catch_hover(
+    cursor: &mut Cursor,
+    buttons: &mut Vec<Button>,
+    hover: &mut bool,
+    hover_i: &mut usize,
+    windows: &WindowGroup,
+) {
+    for i in 0..buttons.len() {
+        let (x, y) = buttons[i].get_pos(&windows.main);
+        let (w, h) = buttons[i].size();
+        *hover = cursor.intersect_with_button(
+            buttons.get(i).unwrap(),
+            &windows.main,
+        );
+
+        if *hover {
+            *hover_i = i;
+            if !cursor.rect || !buttons[i].is_hover() {
+                cursor.set(x, y, w, h + 2.0);
+            }
+            break;
+        }
+    }
 }
 
 #[macroquad::main("Polytope 4D")]
 async fn main() {
     show_mouse(false);
-    let mut selection_type_buttons = vec![
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select0.png").unwrap().as_slice(), None), true, false),
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select1.png").unwrap().as_slice(), None), false, false),
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select2.png").unwrap().as_slice(), None), false, false),
-        (Texture2D::from_file_with_format(std::fs::read("sprites/select3.png").unwrap().as_slice(), None), false, false),
+    let mut buttons = vec![
+        Button::SelectionType(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png", ButtonAlign::TopRight)),
+        Button::SelectionType(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png", ButtonAlign::TopRight)),
+        Button::SelectionType(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png", ButtonAlign::TopRight)),
+        Button::SelectionType(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png", ButtonAlign::TopRight)),
+        Button::Save(ClickButton::new(0.0, 0.0, 20.0, 20.0, "sprites/save.png", ButtonAlign::TopLeft)),
     ];
-    let mut windows = WindowGroup{
-        main: MainWindow::new(screen_width(), screen_height()),
-        scene: SceneWindow::new(screen_width(), screen_height()),
+    buttons[0].set_active(true);
+    let mut windows = WindowGroup {
+        main: Window::Main(MainWindow::new(screen_width(), screen_height())),
+        scene: Window::Scene(SceneWindow::new(screen_width(), screen_height())),
     };
     let mut cursor = Cursor::new(mouse_position());
     let mut last_size = (screen_width(), screen_height());
@@ -105,7 +133,7 @@ async fn main() {
     let mut rmb_click_timer = Instant::now();
     let mut cursor_transform_timer = Instant::now();
     let (mut x_pos, mut y_pos) = mouse_position();
-    let mut axes = Axes::new(100.0, windows.main.config.y - 100.0);
+    let mut axes = Axes::new(100.0, windows.main.config().y - 100.0);
     let mut motion_axes = MotionAxes::new();
     let mut clipboard = Object::empty();
     // let mut selected_vertices: Vec<Vec4f> = vec![];
@@ -121,24 +149,8 @@ async fn main() {
             last_size = new_size;
         }
         let mut hover = false;
-        let mut hover_i = selection_type_buttons.len();
-        for i in 0..4 {
-            let xb = windows.main.config.w - 114.0 + 28.0 * i as f32;
-            hover = cursor.intersect_with_box(
-                xb,
-                windows.main.config.y,
-                28.0,
-                30.0,
-            );
-
-            if hover {
-                hover_i = i;
-                if !cursor.rect || !selection_type_buttons[hover_i].2 {
-                    cursor.set(xb, 0.0, 30.0, 32.0);
-                }
-                break;
-            }
-        }
+        let mut hover_i = buttons.len();
+        catch_hover(&mut cursor, &mut buttons, &mut hover, &mut hover_i, &windows);
         catch_mouse_event(
             &mut is_lmb_down,
             &mut is_rmb_down,
@@ -147,7 +159,7 @@ async fn main() {
             &mut rmb_click_timer,
             hover,
             hover_i,
-            &mut selection_type_buttons,
+            &mut buttons,
             &mut objects,
             (x_pos, y_pos),
             (x_last, y_last),
@@ -162,28 +174,22 @@ async fn main() {
         for obj in (&mut objects).iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
             draw_edges(obj);
-            if selection_type_buttons[0].1 {
+            if buttons.get(0).unwrap().is_active() {
                 draw_vertices(obj.vertices.clone());
             }
         }
         axes.calc(&angle, &windows.main);
         motion_axes.calc(&angle, &windows.main);
-        draw_axes(&axes, windows.main.config.w, windows.main.config.h);
+        draw_axes(&axes, windows.main.config().w, windows.main.config().h);
         draw_motion_axes(&motion_axes);
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
-        for i in 0..4 {
-            let btn = selection_type_buttons.get_mut(i).unwrap();
-            let xb = windows.main.config.w - 114.0 + 28.0 * i as f32;
-            btn.2 = i == hover_i;
+        for i in 0..buttons.len() {
+            let btn = buttons.get_mut(i).unwrap();
+            btn.set_hover(i == hover_i);
             draw_button(
-                xb,
-                0.0,
-                30.0,
-                30.0,
-                btn.0,
-                btn.1,
-                btn.2,
+                btn,
+                &windows.main,
             );
         }
 
@@ -192,6 +198,7 @@ async fn main() {
             cursor.next();
             // println!("{}", cursor.conf.w);
         }
+        draw_cursor_overlay(cursor);
         next_frame().await
     }
 }

@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-
 use super::*;
 
 pub fn catch_mouse_event(
@@ -10,26 +9,28 @@ pub fn catch_mouse_event(
     rmb_click_timer: &mut Instant,
     hover: bool,
     hover_i: usize,
-    selection_type_buttons: &mut Vec<(Texture2D, bool, bool)>,
+    buttons: &mut Vec<Button>,
     objects: &mut Vec<Object>,
     xy: (f32, f32),
     xy_last: (f32, f32),
     motion_axes: &mut MotionAxes,
     angle: &mut Angle,
-    window: &MainWindow,
+    window: &Window,
 ) {
     if is_mouse_button_down(MouseButton::Left) {
-        lmb_down_event(is_lmb_down, lmb_click_timer);
+        lmb_down_event(is_lmb_down, lmb_click_timer, buttons);
     } else if *is_lmb_down { // lmb up event
         if lmb_click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
             lmb_click_event(
                 hover,
-                selection_type_buttons,
+                buttons,
                 hover_i,
                 objects,
                 xy,
                 motion_axes,
             );
+        } else {
+            lmb_up_event(buttons);
         }
         *is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
@@ -40,6 +41,14 @@ pub fn catch_mouse_event(
     }
     if xy_last != xy {
         mouse_move_event(xy, motion_axes);
+    }
+}
+
+pub fn lmb_up_event(buttons: &mut Vec<Button>) {
+    for btn in buttons {
+        if btn.is_active() && btn.is_click_button() {
+            btn.set_active(false);
+        }
     }
 }
 
@@ -86,7 +95,6 @@ pub fn delete_event(
     }
     motion_axes.move_to(None);
 }
-
 /// Copies selected vertices, edges and faces from objects
 /// and writes to specified clipboard.
 pub fn copy_event(objects: &Vec<Object>, clipboard: &mut Object) {
@@ -168,10 +176,16 @@ pub fn mouse_move_event(
 pub fn lmb_down_event(
     is_lmb_down: &mut bool,
     timer: &mut Instant,
+    buttons: &mut Vec<Button>,
 ) {
     if !*is_lmb_down {
         *is_lmb_down = true;
         *timer = Instant::now();
+    }
+    for btn in buttons {
+        if btn.is_hover() && btn.is_click_button() {
+            btn.set_active(true);
+        }
     }
 }
 
@@ -205,7 +219,7 @@ pub fn drag_event(
     scroll_delta: f32,
     motion_axes: &mut MotionAxes,
     objects: &mut Vec<Object>,
-    window: &MainWindow,
+    window: &Window,
 ) {
     if motion_axes.grabbed {
         if motion_axes.grabbed && is_mouse_button_down(MouseButton::Right) {
@@ -236,28 +250,29 @@ pub fn drag_event(
 
 pub fn lmb_click_event(
     hover: bool,
-    selection_type_buttons: &mut Vec<(Texture2D, bool, bool)>,
+    buttons: &mut Vec<Button>,
     hover_i: usize,
     objects: &mut Vec<Object>,
     xy: (f32, f32),
     motion_axes: &mut MotionAxes,
 ) {
-    if hover {
+    if hover && hover_i < buttons.len() && buttons[hover_i].is_check_button() {
         if is_key_down(KeyCode::LeftShift) {
-            if get_enabled_buttons_count(selection_type_buttons) > 1 {
-                selection_type_buttons[hover_i].1 = !selection_type_buttons[hover_i].1;
-            } else if !selection_type_buttons[hover_i].1 {
-                selection_type_buttons[hover_i].1 = true;
+            if get_enabled_buttons_count(buttons) > 1 {
+                let h = buttons.get(hover_i).unwrap().is_active();
+                buttons.get_mut(hover_i).unwrap().set_active(!h);
+            } else if !buttons[hover_i].is_active() {
+                buttons[hover_i].set_active(true);
             }
         } else {
-            for b in selection_type_buttons.iter_mut() {
-                b.1 = false
+            for b in buttons.iter_mut() {
+                b.set_active(false);
             }
-            selection_type_buttons[hover_i].1 = true;
+            buttons[hover_i].set_active(true);
         }
     }
     for obj in objects.iter_mut() {
-        if selection_type_buttons[0].1 {
+        if buttons[0].is_hover() {
             if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
                 let v = obj.vertices.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
@@ -273,7 +288,7 @@ pub fn lmb_click_event(
                 break;
             }
         }
-        if selection_type_buttons[1].1 {
+        if buttons[1].is_hover() {
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
@@ -292,6 +307,6 @@ pub fn lmb_click_event(
     motion_axes.move_to(get_center(objects));
 }
 
-pub fn resize_event<'a>(windows: &'a mut WindowGroup) {
+pub fn resize_event(windows: &mut WindowGroup) {
     (*windows).main.set_size(screen_width(), screen_height());
 }

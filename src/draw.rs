@@ -99,10 +99,10 @@ pub fn draw_axes(axes: &Axes, w: f32, h: f32) {
 
 pub fn draw_windows<'a>(windows: &'a WindowGroup) {
     draw_rectangle(
-        windows.main.config.x,
-        windows.main.config.y,
-        windows.main.config.w,
-        windows.main.config.h,
+        windows.main.config().x,
+        windows.main.config().y,
+        windows.main.config().w,
+        windows.main.config().h,
         Color::new(0.3, 0.3, 0.3, 0.5),
     );
 }
@@ -134,26 +134,36 @@ pub fn draw_edges(obj: &Object) {
     }
 }
 
-pub fn draw_button(x: f32, y: f32, w: f32, h: f32, texture: Texture2D, selected: bool, hover: bool) {
+pub fn draw_cursor_overlay(cursor: Cursor) {
+    draw_circle(
+        cursor.real.x,
+        cursor.real.y,
+        cursor.real.r,
+        Color::new(0.3, 0.3, 0.3, 0.4),
+    );
+}
+
+pub fn draw_button(button: &Button, window: &Window) {
+    let k = if button.is_hover() { 0.6 } else { 0.5 };
+    let (x, y) = button.get_pos(window);
+    let (w, h) = button.size();
+    draw_rectangle(
+        x, y,
+        w, h,
+        // thickness,
+        Color::new(k, k, k, 1.0)
+    );
     draw_texture(
-        texture,
-        x,
-        y,
+        button.texture(),
+        x, y,
         Color::new(1.0, 1.0, 1.0, 1.0)
     );
-    let thickness = if selected { 6.0 } else { 4.0 };
-    draw_rectangle_lines(
-        x, y, w, h,
-        thickness,
-        Color::new(0.4, 0.4, 0.4, 1.0)
-    );
-
-    if hover {
-        draw_rectangle_lines(
-            x + thickness / 2.0, y + thickness / 2.0,
-            w - thickness, h - thickness,
+    if button.is_active() {
+        draw_line(
+            x,     h - 1.0,
+            x + w, h - 1.0,
             2.0,
-            Color::new(0.3, 0.3, 0.3, 1.0)
+            Color::new(0.0, 0.6, 1.0, 1.0),
         );
     }
 }

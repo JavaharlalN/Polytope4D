@@ -1,5 +1,5 @@
 use crate::{angle::Angle, Edge};
-use crate::window::MainWindow;
+use crate::window::{MainWindow, Window};
 use super::Vec4f;
 use std::ops::{Add, AddAssign};
 
@@ -48,7 +48,7 @@ impl Object {
         self
     }
 
-    pub fn calc_vertices(&mut self, a: &Angle, d: f32,  main: &MainWindow) {
+    pub fn calc_vertices(&mut self, a: &Angle, d: f32,  main: &Window) {
         for (_, v) in self.vertices.iter_mut().enumerate() {
             v.calc(a, d, main);
         }

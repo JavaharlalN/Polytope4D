@@ -1,4 +1,4 @@
-use crate::window::MainWindow;
+use crate::window::Window;
 use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::Div;
@@ -126,7 +126,7 @@ impl Vec4f {
         }
     }
 
-    pub fn calc(&mut self, a: &Angle, d: f32, window: &MainWindow) -> Vec4f {
+    pub fn calc(&mut self, a: &Angle, d: f32, window: &Window) -> Vec4f {
         let rotated = self.rotated_xy(&a.xy)
                                 .rotated_xz(&a.xz)
                                 .rotated_xw(&a.xw)
@@ -139,8 +139,8 @@ impl Vec4f {
         let z = rotated.z * w;
         let proj3d = (x, y, z);
         let z = 1.0 / (d - rotated.w - proj3d.2) * SCALE;
-        let x = proj3d.0 * z + window.config.w / 2.0;
-        let y = proj3d.1 * z + window.config.h / 2.0;
+        let x = proj3d.0 * z + window.config().w / 2.0;
+        let y = proj3d.1 * z + window.config().h / 2.0;
         self.set_proj((x, y));
         self.with_proj((x, y))
     }
