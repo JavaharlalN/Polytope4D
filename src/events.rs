@@ -30,7 +30,7 @@ pub fn catch_mouse_event(
                 motion_axes,
             );
         }
-		lmb_up_event(buttons);
+		lmb_up_event(buttons, objects);
         *is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
         rmb_down_event(is_rmb_down, rmb_click_timer, motion_axes);
@@ -43,10 +43,12 @@ pub fn catch_mouse_event(
     }
 }
 
-pub fn lmb_up_event(buttons: &mut Vec<Button>) {
+// TODO: merge to mouse_up_event
+pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &Vec<Object>) {
     for btn in buttons {
         if btn.is_active() && btn.is_click_button() {
             btn.set_active(false);
+			save(objects);
         }
     }
 }
