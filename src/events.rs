@@ -255,6 +255,7 @@ pub fn lmb_click_event(
     xy: (f32, f32),
     motion_axes: &mut MotionAxes,
 ) {
+	println!("");
     if hover && hover_i < buttons.len() && buttons[hover_i].is_check_button() {
         if is_key_down(KeyCode::LeftShift) {
             if get_enabled_buttons_count(buttons) > 1 {
@@ -271,7 +272,7 @@ pub fn lmb_click_event(
         }
     }
     for obj in objects.iter_mut() {
-        if buttons[0].is_hover() {
+        if buttons[0].is_active() {
             if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
                 let v = obj.vertices.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
