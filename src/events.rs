@@ -29,9 +29,8 @@ pub fn catch_mouse_event(
                 xy,
                 motion_axes,
             );
-        } else {
-            lmb_up_event(buttons);
         }
+		lmb_up_event(buttons);
         *is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
         rmb_down_event(is_rmb_down, rmb_click_timer, motion_axes);
