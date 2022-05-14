@@ -1,5 +1,5 @@
 use crate::{angle::Angle, Edge};
-use crate::window::{MainWindow, Window};
+use crate::window::Window;
 use super::Vec4f;
 use std::ops::{Add, AddAssign};
 
