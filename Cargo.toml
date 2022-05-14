@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 macroquad = "0.3.15"
+rfd = "0.8.2"
