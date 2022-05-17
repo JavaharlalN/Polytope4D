@@ -65,7 +65,7 @@ pub fn save(objects: &Vec<Object>) {
 		}
 	}
 	let mut data = vec![];
-	let extention = Data::Ulong(0x4d4d4d4d);
+	let extention = Data::Uint(0x4d4d4d4d);
 	let vertices_count = Data::Uint(vertices.len() as u32);
 	let edges_count = Data::Uint(edges.len() as u32);
 	let faces_count = Data::Uint(faces.len() as u32);

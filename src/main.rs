@@ -113,6 +113,30 @@ pub fn catch_hover(
     }
 }
 
+pub struct MouseState {
+    pub is_lmb_down: bool,
+    pub is_rmb_down: bool,
+    pub lmb_click_timer: Instant,
+    pub rmb_click_timer: Instant,
+    pub cursor_transform_timer: Instant,
+    pub pos: (f32, f32),
+    pub scroll_delta: f32,
+}
+
+impl MouseState {
+    pub fn new(pos: (f32, f32), scroll_delta: f32) -> MouseState {
+        MouseState {
+            is_lmb_down: false,
+            is_rmb_down: false,
+            lmb_click_timer: Instant::now(),
+            rmb_click_timer: Instant::now(),
+            cursor_transform_timer: Instant::now(),
+            pos,
+            scroll_delta,
+        }
+    }
+}
+
 #[macroquad::main("Polytope 4D")]
 async fn main() {
     show_mouse(false);
@@ -128,27 +152,24 @@ async fn main() {
         main: Window::Main(MainWindow::new(screen_width(), screen_height())),
         scene: Window::Scene(SceneWindow::new(screen_width(), screen_height())),
     };
+
+    let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
     let mut cursor = Cursor::new(mouse_position());
     let mut last_size = (screen_width(), screen_height());
     let mut objects = vec![Object::tesseract()];
     let mut angle = Angle::new();
-    let mut is_lmb_down = false;
-    let mut is_rmb_down = false;
     let camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
-    let mut lmb_click_timer = Instant::now();
-    let mut rmb_click_timer = Instant::now();
-    let mut cursor_transform_timer = Instant::now();
-    let (mut x_pos, mut y_pos) = mouse_position();
     let mut axes = Axes::new(100.0, windows.main.config().y - 100.0);
     let mut motion_axes = MotionAxes::new();
     let mut clipboard = Object::empty();
     // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
-        let scroll_delta = mouse_wheel().1;
-        let x_last = x_pos;
-        let y_last = y_pos;
-        match mouse_position() { (x, y) => { x_pos = x; y_pos = y } }
+        mouse_state.scroll_delta = mouse_wheel().1;
+        let x_last = mouse_state.pos.0;
+        let y_last = mouse_state.pos.1;
+        mouse_state.pos = mouse_position();
+
         let new_size = (screen_width(), screen_height());
         if new_size != last_size {
             resize_event(&mut windows);
@@ -158,16 +179,11 @@ async fn main() {
         let mut hover_i = buttons.len();
         catch_hover(&mut cursor, &mut buttons, &mut hover, &mut hover_i, &windows);
         catch_mouse_event(
-            &mut is_lmb_down,
-            &mut is_rmb_down,
-            scroll_delta,
-            &mut lmb_click_timer,
-            &mut rmb_click_timer,
+            &mut mouse_state,
             hover,
             hover_i,
             &mut buttons,
             &mut objects,
-            (x_pos, y_pos),
             (x_last, y_last),
             &mut motion_axes,
             &mut angle,
@@ -175,7 +191,7 @@ async fn main() {
         );
         catch_keyboard_event(&mut objects, &mut clipboard, &mut motion_axes);
         draw_windows(&windows);
-        cursor.move_to(x_pos, y_pos);
+        cursor.move_to(mouse_state.pos.0, mouse_state.pos.1);
         let d = dist(Vec4f::new0(), camera.c);
         for obj in (&mut objects).iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
@@ -199,8 +215,8 @@ async fn main() {
             );
         }
 
-        if cursor_transform_timer.elapsed().as_millis() >= CUR_TRANSFORM_TO {
-            cursor_transform_timer = Instant::now();
+        if mouse_state.cursor_transform_timer.elapsed().as_millis() >= CUR_TRANSFORM_TO {
+            mouse_state.cursor_transform_timer = Instant::now();
             cursor.next();
             // println!("{}", cursor.conf.w);
         }
