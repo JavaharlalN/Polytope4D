@@ -2,19 +2,6 @@ use macroquad::prelude::show_mouse;
 use crate::objects::Vec4f;
 use crate::objects::Object;
 
-fn open_with_explorer() -> Option<String> {
-	show_mouse(true);
-	let path = rfd::FileDialog::new()
-		.add_filter("4D object", &["p4d"])
-		.set_directory("/")
-		.pick_file();
-	show_mouse(false);
-	match path {
-		Some(p) => p.as_os_str().to_str().map(|s| s.to_string()),
-		None => None,
-	}
-}
-
 fn save_with_explorer() -> Option<String> {
 	show_mouse(true);
 	let path = rfd::FileDialog::new()
