@@ -184,7 +184,7 @@ async fn main() {
         axes.calc(&angle, &windows.main);
         motion_axes.calc(&angle, &windows.main);
         draw_axes(&axes, windows.main.config().w, windows.main.config().h);
-        draw_motion_axes(&motion_axes);
+        draw_selected_object_axes(&motion_axes);
         draw_cursor(&cursor);
         if !hover { cursor.reset(); }
         for i in 0..buttons.len() {
