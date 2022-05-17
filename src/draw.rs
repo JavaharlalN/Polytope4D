@@ -9,7 +9,7 @@ pub fn draw_cursor(cursor: &Cursor) {
     }
 }
 
-fn draw_selected_motion_axe(axe: &Vec4f, (off_x, off_y): (f32, f32), axe_index: usize) {
+fn draw_selected_object_motion_axe(axe: &Vec4f, (off_x, off_y): (f32, f32), axe_index: usize) {
     if let Some((x, y)) = axe.get_proj() {
         let color = match axe_index {
             0 => Color::new(1.0, 0.0, 0.0, 1.0),
@@ -21,7 +21,7 @@ fn draw_selected_motion_axe(axe: &Vec4f, (off_x, off_y): (f32, f32), axe_index: 
     }
 }
 
-fn draw_motion_axe(axe: &Vec4f, (off_x, off_y): (f32, f32), axe_index: usize) {
+fn draw_selected_object_axe(axe: &Vec4f, (off_x, off_y): (f32, f32), axe_index: usize) {
     if let Some((x, y)) = axe.get_proj() {
         let thickness = if axe.selected { 3.0 } else { 2.0 };
         let a = if axe.selected { 1.0 } else { 0.7 };
@@ -37,7 +37,7 @@ fn draw_motion_axe(axe: &Vec4f, (off_x, off_y): (f32, f32), axe_index: usize) {
     }
 }
 
-pub fn draw_motion_axes(axes: &MotionAxes) {
+pub fn draw_selected_object_axes(axes: &MotionAxes) {
     if let Some(pos) = axes.pos {
         let (off_x, off_y) =
         if let Some(off) = pos.get_proj() {
@@ -47,16 +47,16 @@ pub fn draw_motion_axes(axes: &MotionAxes) {
         };
         if axes.grabbed {
             if let Some(grabbed_axe) = axes.grab_now {
-                if axes.x.selected { draw_selected_motion_axe(&grabbed_axe, (off_x, off_y), 0); }
-                if axes.y.selected { draw_selected_motion_axe(&grabbed_axe, (off_x, off_y), 1); }
-                if axes.z.selected { draw_selected_motion_axe(&grabbed_axe, (off_x, off_y), 2); }
-                if axes.w.selected { draw_selected_motion_axe(&grabbed_axe, (off_x, off_y), 3); }
+                if axes.x.selected { draw_selected_object_motion_axe(&grabbed_axe, (off_x, off_y), 0); }
+                if axes.y.selected { draw_selected_object_motion_axe(&grabbed_axe, (off_x, off_y), 1); }
+                if axes.z.selected { draw_selected_object_motion_axe(&grabbed_axe, (off_x, off_y), 2); }
+                if axes.w.selected { draw_selected_object_motion_axe(&grabbed_axe, (off_x, off_y), 3); }
             }
         } else {
-            draw_motion_axe(&axes.x, (off_x, off_y), 0);
-            draw_motion_axe(&axes.y, (off_x, off_y), 1);
-            draw_motion_axe(&axes.z, (off_x, off_y), 2);
-            draw_motion_axe(&axes.w, (off_x, off_y), 3);
+            draw_selected_object_axe(&axes.x, (off_x, off_y), 0);
+            draw_selected_object_axe(&axes.y, (off_x, off_y), 1);
+            draw_selected_object_axe(&axes.z, (off_x, off_y), 2);
+            draw_selected_object_axe(&axes.w, (off_x, off_y), 3);
         }
         draw_circle(off_x, off_y, 3.0, Color::new(0.0, 0.2, 0.4, 1.0));
         draw_circle(off_x, off_y, 2.0, Color::new(0.0, 0.6, 1.0, 1.0));
