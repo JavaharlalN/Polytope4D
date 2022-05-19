@@ -141,11 +141,12 @@ impl MouseState {
 async fn main() {
     show_mouse(false);
     let mut buttons = vec![
-        Button::SelectionType(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png", ButtonAlign::TopRight)),
-        Button::SelectionType(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png", ButtonAlign::TopRight)),
-        Button::SelectionType(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png", ButtonAlign::TopRight)),
-        Button::SelectionType(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png", ButtonAlign::TopRight)),
-        Button::Save(ClickButton::new(0.0, 0.0, 20.0, 20.0, "sprites/save.png", ButtonAlign::TopLeft)),
+        Button::Check(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
+        Button::Check(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
+        Button::Check(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
+        Button::Check(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
+        Button::Click(ClickButton::new(0.0, 0.0, 20.0, 20.0, "sprites/import.png", ButtonAlign::TopLeft, ButtonType::Import)),
+        Button::Click(ClickButton::new(20.0, 0.0, 20.0, 20.0, "sprites/save.png", ButtonAlign::TopLeft, ButtonType::Export)),
     ];
     buttons[0].set_active(true);
     let mut windows = WindowGroup {
