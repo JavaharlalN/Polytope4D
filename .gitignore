@@ -2,3 +2,4 @@ target/
 Cargo.lock
 workspace.code-workspace
 theme.jsonc
+*.4dp

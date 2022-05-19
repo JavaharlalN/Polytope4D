@@ -2,53 +2,57 @@ use std::f32::consts::PI;
 use super::*;
 
 pub fn catch_mouse_event(
-    is_lmb_down: &mut bool,
-    is_rmb_down: &mut bool,
-    scroll_delta: f32,
-    lmb_click_timer: &mut Instant,
-    rmb_click_timer: &mut Instant,
+    ms: &mut MouseState,
     hover: bool,
     hover_i: usize,
     buttons: &mut Vec<Button>,
     objects: &mut Vec<Object>,
-    xy: (f32, f32),
     xy_last: (f32, f32),
     motion_axes: &mut MotionAxes,
     angle: &mut Angle,
     window: &Window,
 ) {
     if is_mouse_button_down(MouseButton::Left) {
-        lmb_down_event(is_lmb_down, lmb_click_timer, buttons);
-    } else if *is_lmb_down { // lmb up event
-        if lmb_click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
+        lmb_down_event(&mut ms.is_lmb_down, &mut ms.lmb_click_timer, buttons);
+    } else if ms.is_lmb_down { // lmb up event
+        if ms.lmb_click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
             lmb_click_event(
                 hover,
                 buttons,
                 hover_i,
                 objects,
-                xy,
+                ms.pos,
                 motion_axes,
             );
         }
 		lmb_up_event(buttons, objects);
-        *is_lmb_down = false;
+        ms.is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
-        rmb_down_event(is_rmb_down, rmb_click_timer, motion_axes);
-        drag_event(xy, xy_last, angle, scroll_delta, motion_axes, objects, window);
-    } else if *is_rmb_down {
-        mouse_up_event(is_rmb_down, motion_axes, objects);
+        rmb_down_event(&mut ms.is_rmb_down, &mut ms.rmb_click_timer, motion_axes);
+        drag_event(ms.pos, xy_last, angle, ms.scroll_delta, motion_axes, objects, window);
+    } else if ms.is_rmb_down {
+        mouse_up_event(&mut ms.is_rmb_down, motion_axes, objects);
     }
-    if xy_last != xy {
-        mouse_move_event(xy, motion_axes);
+    if xy_last != ms.pos {
+        mouse_move_event(ms.pos, motion_axes);
     }
 }
 
 // TODO: merge to mouse_up_event
-pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &Vec<Object>) {
+pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &mut Vec<Object>) {
     for btn in buttons {
         if btn.is_active() && btn.is_click_button() {
             btn.set_active(false);
-			save(objects);
+            match btn.get_type() {
+                ButtonType::Export =>  { save(objects); },
+                ButtonType::Import => { match open_4dp() {
+                    Ok(obj) => {
+                        objects.clear();
+                        objects.push(obj);
+                    }, Err(e) => println!("{}", e),
+                } },
+                _ => {},
+            }
         }
     }
 }
