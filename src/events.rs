@@ -39,11 +39,20 @@ pub fn catch_mouse_event(
 }
 
 // TODO: merge to mouse_up_event
-pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &Vec<Object>) {
+pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &mut Vec<Object>) {
     for btn in buttons {
         if btn.is_active() && btn.is_click_button() {
             btn.set_active(false);
-			save(objects);
+            match btn.get_type() {
+                ButtonType::Export =>  { save(objects); },
+                ButtonType::Import => { match open_4dp() {
+                    Ok(obj) => {
+                        objects.clear();
+                        objects.push(obj);
+                    }, Err(e) => println!("{}", e),
+                } },
+                _ => {},
+            }
         }
     }
 }
