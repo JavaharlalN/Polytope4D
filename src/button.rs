@@ -18,10 +18,11 @@ pub struct CheckButton {
     hover: bool,
     checked: bool,
     align: ButtonAlign,
+    btype: ButtonType,
 }
 
 impl CheckButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign, btype: ButtonType) -> Self {
         Self {
             x, y,
             w, h,
@@ -29,8 +30,16 @@ impl CheckButton {
             hover: false,
             checked: false,
             align,
+            btype,
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum ButtonType {
+    Import,
+    Export,
+    SelectionType,
 }
 
 #[derive(Debug, Clone)]
@@ -43,10 +52,11 @@ pub struct ClickButton {
     hover: bool,
     hold: bool,
     align: ButtonAlign,
+    btype: ButtonType,
 }
 
 impl ClickButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign, btype: ButtonType) -> Self {
         Self {
             x, y,
             w, h,
@@ -54,72 +64,80 @@ impl ClickButton {
             hover: false,
             hold: false,
             align,
+            btype,
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum Button {
-    SelectionType(CheckButton),
-    Save(ClickButton)
+    Check(CheckButton),
+    Click(ClickButton),
 }
 
 impl Button {
     pub fn offset(&self) -> (f32, f32) {
         match self {
-            Button::SelectionType(btn) => { (btn.x, btn.y) },
-            Button::Save(btn) => { (btn.x, btn.y) },
+            Button::Check(btn) => { (btn.x, btn.y) },
+            Button::Click(btn) => (btn.x, btn.y),
         }
     }
 
     pub fn size(&self) -> (f32, f32) {
         match self {
-            Button::SelectionType(btn) => { (btn.w, btn.h) },
-            Button::Save(btn) => { (btn.w, btn.h) },
+            Button::Check(btn) => (btn.w, btn.h),
+            Button::Click(btn) => (btn.w, btn.h),
         }
     }
 
     pub fn is_hover(&self) -> bool {
         match self {
-            Button::SelectionType(btn) => { btn.hover },
-            Button::Save(btn) => { btn.hover },
+            Button::Check(btn) => btn.hover,
+            Button::Click(btn) => btn.hover,
         }
     }
 
     pub fn is_active(&self) -> bool {
         match self {
-            Button::SelectionType(btn) => { btn.checked },
-            Button::Save(btn) => { btn.hold }
+            Button::Check(btn) => btn.checked,
+            Button::Click(btn) => btn.hold,
         }
     }
 
     pub fn set_hover(&mut self, h: bool) {
         match self {
-            Button::SelectionType(btn) => { btn.hover = h },
-            Button::Save(btn) => { btn.hover = h },
+            Button::Check(btn) => btn.hover = h,
+            Button::Click(btn) => btn.hover = h,
         }
     }
 
     pub fn set_active(&mut self, a: bool) {
         match self {
-            Button::SelectionType(btn) => { btn.checked = a },
-            Button::Save(btn) => { btn.hold = a },
+            Button::Check(btn) => btn.checked = a,
+            Button::Click(btn) => btn.hold = a,
         }
     }
 
     pub fn texture(&self) -> Texture2D {
         match self {
-            Button::SelectionType(btn) => { btn.texture },
-            Button::Save(btn) => { btn.texture },
+            Button::Check(btn) => btn.texture,
+            Button::Click(btn) => btn.texture,
         }
     }
 
     pub fn align(&self) -> ButtonAlign {
         match self {
-            Button::SelectionType(btn) => { btn.align },
-            Button::Save(btn) => { btn.align },
+            Button::Check(btn) => btn.align,
+            Button::Click(btn) => btn.align,
         }
-    } 
+    }
+
+    pub fn get_type(&self) -> ButtonType {
+        match self {
+            Button::Check(btn) => btn.clone().btype,
+            Button::Click(btn) => btn.clone().btype,
+        }
+    }
 
     pub fn get_pos(&self, window: &Window) -> (f32, f32) {
         let (xw, yw) = window.pos();
@@ -135,15 +153,15 @@ impl Button {
 
     pub fn is_check_button(&self) -> bool {
         match self {
-            Button::SelectionType(_) => true,
-            Button::Save(_) => false,
+            Button::Check(_) => true,
+            _ => false,
         }
     }
 
     pub fn is_click_button(&self) -> bool {
         match self {
-            Button::SelectionType(_) => false,
-            Button::Save(_) => true,
+            Button::Click(_) => true,
+            _ => false,
         }
     }
 }
