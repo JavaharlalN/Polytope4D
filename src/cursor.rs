@@ -1,5 +1,5 @@
-use crate::window::Window;
 use super::Button;
+use crate::window::Window;
 
 const STEPS: u8 = 10;
 

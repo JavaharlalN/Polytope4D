@@ -9,6 +9,6 @@ pub enum ALIGN {
 #[derive(Debug, Clone)]
 pub struct ObjectField<T> {
     pub parent: T,
-    pub y:f32,
+    pub y:      f32,
     pub object: Object,
 }

@@ -18,6 +18,7 @@ use window::*;
 use objects::*;
 use save::save;
 use std::time::Instant;
+use lazy_static::lazy_static;
 use macroquad::prelude::Conf;
 use macroquad::prelude::Font;
 use macroquad::prelude::Color;
@@ -36,7 +37,6 @@ use macroquad::prelude::screen_height;
 use macroquad::prelude::mouse_position;
 use macroquad::prelude::draw_rectangle;
 use macroquad::prelude::clear_background;
-use lazy_static::lazy_static;
 
 lazy_static! {
     static ref SCREEN_SIZE: (u64, u64) = rdev::display_size().unwrap();
@@ -96,9 +96,9 @@ pub fn get_enabled_buttons_count(buttons: &Vec<Button>) -> i32 {
 }
 
 pub fn catch_hover(
-    cursor: &mut Cursor,
+    cursor:  &mut Cursor,
     buttons: &mut Vec<Button>,
-    hover: &mut bool,
+    hover:   &mut bool,
     hover_i: &mut usize,
     windows: &WindowGroup,
 ) {
@@ -121,22 +121,22 @@ pub fn catch_hover(
 }
 
 pub struct MouseState {
-    pub is_lmb_down: bool,
-    pub is_rmb_down: bool,
-    pub lmb_click_timer: Instant,
-    pub rmb_click_timer: Instant,
+    pub is_lmb_down:            bool,
+    pub is_rmb_down:            bool,
+    pub lmb_click_timer:        Instant,
+    pub rmb_click_timer:        Instant,
     pub cursor_transform_timer: Instant,
-    pub pos: (f32, f32),
-    pub scroll_delta: f32,
+    pub pos:                   (f32, f32),
+    pub scroll_delta:           f32,
 }
 
 impl MouseState {
     pub fn new(pos: (f32, f32), scroll_delta: f32) -> MouseState {
         MouseState {
-            is_lmb_down: false,
-            is_rmb_down: false,
-            lmb_click_timer: Instant::now(),
-            rmb_click_timer: Instant::now(),
+            is_lmb_down:            false,
+            is_rmb_down:            false,
+            lmb_click_timer:        Instant::now(),
+            rmb_click_timer:        Instant::now(),
             cursor_transform_timer: Instant::now(),
             pos,
             scroll_delta,
@@ -147,7 +147,7 @@ impl MouseState {
 fn window_config() -> Conf {
     Conf {
         window_title: "Polytope 4D".to_string(),
-        window_width: SCREEN_SIZE.0 as i32,
+        window_width:  SCREEN_SIZE.0 as i32,
         window_height: SCREEN_SIZE.1 as i32,
         ..Default::default()
     }

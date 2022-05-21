@@ -1,8 +1,9 @@
-use crate::{angle::Angle, Edge};
-use crate::window::Window;
+use crate::Edge;
 use super::Vec4f;
-use std::ops::{Add, AddAssign};
-
+use std::ops::Add;
+use std::ops::AddAssign;
+use crate::angle::Angle;
+use crate::window::Window;
 
 #[derive(Debug, Clone)]
 pub struct Object {
@@ -26,10 +27,10 @@ impl Object {
     pub fn empty() -> Object {
         Object {
             vertices: vec![],
-            edges: vec![],
-            faces: vec![],
-            cells: vec![],
-            name: None,
+            edges:    vec![],
+            faces:    vec![],
+            cells:    vec![],
+            name:     None,
         }
     }
 

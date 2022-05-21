@@ -56,40 +56,40 @@ pub struct HintArea {
 
 #[derive(Debug, Clone)]
 pub struct Parameters {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
+    pub x:       f32,
+    pub y:       f32,
+    pub w:       f32,
+    pub h:       f32,
     pub grabbed: bool,
-    pub name: String,
+    pub name:    String,
 }
 
 #[derive(Debug, Clone)]
 pub struct MainWindow {
-    pub config: Parameters,
+    pub config:  Parameters,
     pub buttons: Vec<Button>,
 }
 
 #[derive(Debug, Clone)]
 pub struct SceneWindow {
-    pub config: Parameters,
-    pub objects: Vec<Object>,
-    pub fields: Vec<ObjectField<Self>>,
-    pub left_area: HintArea,
-    pub right_area: HintArea,
-    pub top_area: HintArea,
+    pub config:      Parameters,
+    pub objects:     Vec<Object>,
+    pub fields:      Vec<ObjectField<Self>>,
+    pub left_area:   HintArea,
+    pub right_area:  HintArea,
+    pub top_area:    HintArea,
     pub bottom_area: HintArea,
 }
 
 pub struct WindowGroup {
-    pub main: Window,
+    pub main:  Window,
     pub scene: Window,
 }
 
 impl WindowGroup {
     pub fn copy(self) -> WindowGroup {
         WindowGroup {
-            main: self.main,
+            main:  self.main,
             scene: self.scene,
         }
     }
@@ -99,12 +99,12 @@ impl MainWindow {
     pub fn new(screen_width: f32, screen_height: f32) -> MainWindow{
         MainWindow{
             config: Parameters{
-                x: 0.0,
-                y: 0.0,
-                w: screen_width,
-                h: screen_height,
+                x:       0.0,
+                y:       0.0,
+                w:       screen_width,
+                h:       screen_height,
                 grabbed: false,
-                name: "Main".to_string(),
+                name:    "Main".to_string(),
             },
             buttons: vec![],
         }
@@ -130,7 +130,7 @@ impl HintArea {
                 _ => 200.0
             },
             align,
-            busy: false,
+            busy:    false,
             visible: false,
         }
     }
@@ -140,19 +140,19 @@ impl SceneWindow {
     pub fn new(screen_width: f32, screen_height: f32) -> SceneWindow {
         SceneWindow{
             config: Parameters{
-                x: screen_width / 2.0,
-                y: screen_height / 2.0,
-                w: 200.0,
-                h: 200.0,
+                x:       screen_width / 2.0,
+                y:       screen_height / 2.0,
+                w:       200.0,
+                h:       200.0,
                 grabbed: false,
-                name: "Scene".to_string(),
+                name:    "Scene".to_string(),
             },
-            objects: Vec::new(),
-            fields: Vec::new(),
-            left_area: HintArea::new(50.0, HintAlign::LEFT),
-            right_area: HintArea::new(50.0, HintAlign::RIGHT),
+            objects:     Vec::new(),
+            fields:      Vec::new(),
+            left_area:   HintArea::new(50.0, HintAlign::LEFT),
+            right_area:  HintArea::new(50.0, HintAlign::RIGHT),
             bottom_area: HintArea::new(50.0, HintAlign::BOTTOM),
-            top_area: HintArea::new(50.0, HintAlign::TOP),
+            top_area:    HintArea::new(50.0, HintAlign::TOP),
         }
     }
 }

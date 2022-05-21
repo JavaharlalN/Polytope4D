@@ -13,27 +13,27 @@ pub struct Axes {
 
 #[derive(Debug, Copy, Clone)]
 pub struct MotionAxes {
-    pub x: Vec4f,
-    pub y: Vec4f,
-    pub z: Vec4f,
-    pub w: Vec4f,
-    pub pos: Option<Vec4f>,
-    pub grabbed: bool,
+    pub x:          Vec4f,
+    pub y:          Vec4f,
+    pub z:          Vec4f,
+    pub w:          Vec4f,
+    pub pos:        Option<Vec4f>,
+    pub grabbed:    bool,
     pub grab_start: Option<Vec4f>,
-    pub grab_now: Option<Vec4f>,
+    pub grab_now:   Option<Vec4f>,
 }
 
 impl MotionAxes {
     pub fn new() -> Self {
         MotionAxes {
-            x: Vec4f::new(0.5, 0.0, 0.0, 0.0),
-            y: Vec4f::new(0.0, 0.5, 0.0, 0.0),
-            z: Vec4f::new(0.0, 0.0, 0.5, 0.0),
-            w: Vec4f::new(0.0, 0.0, 0.0, 0.5),
+            x:          Vec4f::new(0.5, 0.0, 0.0, 0.0),
+            y:          Vec4f::new(0.0, 0.5, 0.0, 0.0),
+            z:          Vec4f::new(0.0, 0.0, 0.5, 0.0),
+            w:          Vec4f::new(0.0, 0.0, 0.0, 0.5),
             grab_start: None,
-            grab_now: None,
-            grabbed: false,
-            pos: None,
+            grab_now:   None,
+            grabbed:    false,
+            pos:        None,
         }
     }
 
@@ -61,14 +61,14 @@ impl MotionAxes {
     pub fn try_grab(&mut self) {
         if self.any_axe_selected() {
             self.grab_start = self.pos;
-            self.grabbed = true;
+            self.grabbed    = true;
         }
     }
 
     pub fn ungrab(&mut self) {
         self.grab_start = None;
-        self.grab_now = None;
-        self.grabbed = false;
+        self.grab_now   = None;
+        self.grabbed    = false;
     }
 
     fn get_motion_delta_for_axe(

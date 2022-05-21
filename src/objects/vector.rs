@@ -48,8 +48,8 @@ impl Vec4f {
             y,
             z,
             w,
-            proj_x: None,
-            proj_y: None,
+            proj_x:   None,
+            proj_y:   None,
             selected: false,
         }
     }
@@ -113,12 +113,12 @@ impl Vec4f {
 
     pub fn with_proj(self, v: (f32, f32)) -> Self {
         Vec4f {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-            w: self.w,
-            proj_x: Some(v.0),
-            proj_y: Some(v.1),
+            x:        self.x,
+            y:        self.y,
+            z:        self.z,
+            w:        self.w,
+            proj_x:   Some(v.0),
+            proj_y:   Some(v.1),
             selected: false,
         }
     }
@@ -136,11 +136,11 @@ impl Vec4f {
 
     pub fn calc(&mut self, a: &Angle, d: f32, window: &Window) -> Vec4f {
         let rotated = self.rotated_xy(&a.xy)
-                                .rotated_xz(&a.xz)
-                                .rotated_xw(&a.xw)
-                                .rotated_yz(&a.yz)
-                                .rotated_yw(&a.yw)
-                                .rotated_zw(&a.zw);
+                                 .rotated_xz(&a.xz)
+                                 .rotated_xw(&a.xw)
+                                 .rotated_yz(&a.yz)
+                                 .rotated_yw(&a.yw)
+                                 .rotated_zw(&a.zw);
         let w = 1.0 / (d - rotated.w);
         let x = rotated.x * w;
         let y = rotated.y * w;

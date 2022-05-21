@@ -10,15 +10,15 @@ pub enum Align {
 
 #[derive(Debug, Clone)]
 pub struct CheckButton {
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
+    x:       f32,
+    y:       f32,
+    w:       f32,
+    h:       f32,
     texture: Texture2D,
-    hover: bool,
+    hover:   bool,
     checked: bool,
-    align: Align,
-    btype: ButtonType,
+    align:   Align,
+    btype:   ButtonType,
 }
 
 impl CheckButton {
@@ -27,7 +27,7 @@ impl CheckButton {
             x, y,
             w, h,
             texture: Texture2D::from_file_with_format(std::fs::read(sprite).unwrap().as_slice(), None),
-            hover: false,
+            hover:   false,
             checked: false,
             align,
             btype,
@@ -46,15 +46,15 @@ pub enum ButtonType {
 
 #[derive(Debug, Clone)]
 pub struct ClickButton {
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
+    x:       f32,
+    y:       f32,
+    w:       f32,
+    h:       f32,
     texture: Texture2D,
-    hover: bool,
-    hold: bool,
-    align: Align,
-    btype: ButtonType,
+    hover:   bool,
+    hold:    bool,
+    align:   Align,
+    btype:   ButtonType,
 }
 
 impl ClickButton {
@@ -63,8 +63,8 @@ impl ClickButton {
             x, y,
             w, h,
             texture: Texture2D::from_file_with_format(std::fs::read(sprite).unwrap().as_slice(), None),
-            hover: false,
-            hold: false,
+            hover:   false,
+            hold:    false,
             align,
             btype,
         }
