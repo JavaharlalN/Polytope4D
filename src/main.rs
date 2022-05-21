@@ -1,39 +1,46 @@
-mod draw;
 mod save;
+mod draw;
 mod angle;
-mod cursor;
-mod events;
+mod error;
 mod button;
 mod import;
-mod objects;
 mod window;
-mod error;
+mod cursor;
+mod events;
+mod objects;
 use draw::*;
 use angle::*;
 use import::*;
 use events::*;
 use button::*;
+use cursor::*;
+use window::*;
+use objects::*;
 use save::save;
+use std::time::Instant;
+use macroquad::prelude::Conf;
 use macroquad::prelude::Font;
-use macroquad::prelude::TextParams;
-use macroquad::prelude::Texture2D;
-use macroquad::prelude::draw_rectangle;
-use macroquad::prelude::clear_background;
 use macroquad::prelude::Color;
+use macroquad::prelude::Texture2D;
+use macroquad::prelude::draw_line;
+use macroquad::prelude::draw_poly;
+use macroquad::prelude::show_mouse;
+use macroquad::prelude::TextParams;
+use macroquad::prelude::next_frame;
+use macroquad::prelude::draw_circle;
+use macroquad::prelude::mouse_wheel;
 use macroquad::prelude::draw_text_ex;
 use macroquad::prelude::draw_texture;
 use macroquad::prelude::screen_width;
 use macroquad::prelude::screen_height;
-use macroquad::prelude::draw_line;
-use macroquad::prelude::draw_poly;
-use macroquad::prelude::next_frame;
-use macroquad::prelude::draw_circle;
-use macroquad::input::*;
-use cursor::*;
-use objects::*;
-use window::*;
-use std::env::set_current_dir;
-use std::time::Instant;
+use macroquad::prelude::mouse_position;
+use macroquad::prelude::draw_rectangle;
+use macroquad::prelude::clear_background;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref SCREEN_SIZE: (u64, u64) = rdev::display_size().unwrap();
+}
 
 fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> {
     let mut closest = None;
@@ -137,16 +144,27 @@ impl MouseState {
     }
 }
 
-#[macroquad::main("Polytope 4D")]
+fn window_config() -> Conf {
+    Conf {
+        window_title: "Polytope 4D".to_string(),
+        window_width: SCREEN_SIZE.0 as i32,
+        window_height: SCREEN_SIZE.1 as i32,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_config)]
 async fn main() {
     show_mouse(false);
     let mut buttons = vec![
-        Button::Check(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
-        Button::Check(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
-        Button::Check(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
-        Button::Check(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png", ButtonAlign::TopRight, ButtonType::SelectionType)),
-        Button::Click(ClickButton::new(0.0, 0.0, 20.0, 20.0, "sprites/import.png", ButtonAlign::TopLeft, ButtonType::Import)),
-        Button::Click(ClickButton::new(20.0, 0.0, 20.0, 20.0, "sprites/save.png", ButtonAlign::TopLeft, ButtonType::Export)),
+        Button::Check(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png",  Align::TopRight, ButtonType::SelectionType)),
+        Button::Check(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png",  Align::TopRight, ButtonType::SelectionType)),
+        Button::Check(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png",  Align::TopRight, ButtonType::SelectionType)),
+        Button::Check(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png",  Align::TopRight, ButtonType::SelectionType)),
+        Button::Click(ClickButton::new(   0.0, 0.0, 20.0, 20.0, "sprites/logo.png",     Align::TopLeft,  ButtonType::Info)),
+        Button::Click(ClickButton::new(  20.0, 0.0, 20.0, 20.0, "sprites/settings.png", Align::TopLeft,  ButtonType::Settings)),
+        Button::Click(ClickButton::new(  40.0, 0.0, 20.0, 20.0, "sprites/import.png",   Align::TopLeft,  ButtonType::Import)),
+        Button::Click(ClickButton::new(  60.0, 0.0, 20.0, 20.0, "sprites/save.png",     Align::TopLeft,  ButtonType::Export)),
     ];
     buttons[0].set_active(true);
     let mut windows = WindowGroup {
@@ -163,7 +181,6 @@ async fn main() {
     let mut axes = Axes::new(100.0, windows.main.config().y - 100.0);
     let mut motion_axes = MotionAxes::new();
     let mut clipboard = Object::empty();
-    // let mut selected_vertices: Vec<Vec4f> = vec![];
     loop {
         clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
         mouse_state.scroll_delta = mouse_wheel().1;

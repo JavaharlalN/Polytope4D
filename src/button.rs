@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Copy, Clone)]
-pub enum ButtonAlign {
+pub enum Align {
     TopLeft,
     TopRight,
     BottomLeft,
@@ -17,12 +17,12 @@ pub struct CheckButton {
     texture: Texture2D,
     hover: bool,
     checked: bool,
-    align: ButtonAlign,
+    align: Align,
     btype: ButtonType,
 }
 
 impl CheckButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign, btype: ButtonType) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: Align, btype: ButtonType) -> Self {
         Self {
             x, y,
             w, h,
@@ -37,9 +37,11 @@ impl CheckButton {
 
 #[derive(Debug, Clone)]
 pub enum ButtonType {
+    SelectionType,
+    Settings,
     Import,
     Export,
-    SelectionType,
+    Info,
 }
 
 #[derive(Debug, Clone)]
@@ -51,12 +53,12 @@ pub struct ClickButton {
     texture: Texture2D,
     hover: bool,
     hold: bool,
-    align: ButtonAlign,
+    align: Align,
     btype: ButtonType,
 }
 
 impl ClickButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign, btype: ButtonType) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: Align, btype: ButtonType) -> Self {
         Self {
             x, y,
             w, h,
@@ -125,7 +127,7 @@ impl Button {
         }
     }
 
-    pub fn align(&self) -> ButtonAlign {
+    pub fn align(&self) -> Align {
         match self {
             Button::Check(btn) => btn.align,
             Button::Click(btn) => btn.align,
@@ -144,10 +146,10 @@ impl Button {
         let (w, h) = window.size();
         let (xb, yb) = self.offset();
         match self.align() {
-            ButtonAlign::TopLeft     => (xw + xb,     yw + yb),
-            ButtonAlign::TopRight    => (xw + xb + w, yw + yb),
-            ButtonAlign::BottomLeft  => (xw + xb,     yw + yb + h),
-            ButtonAlign::BottomRight => (xw + xb + w, yw + yb + h),
+            Align::TopLeft     => (xw + xb,     yw + yb),
+            Align::TopRight    => (xw + xb + w, yw + yb),
+            Align::BottomLeft  => (xw + xb,     yw + yb + h),
+            Align::BottomRight => (xw + xb + w, yw + yb + h),
         }
     }
 
