@@ -1,5 +1,10 @@
-use std::f32::consts::PI;
 use super::*;
+use std::f32::consts::PI;
+use macroquad::prelude::KeyCode;
+use macroquad::prelude::MouseButton;
+use macroquad::prelude::is_key_down;
+use macroquad::prelude::is_key_pressed;
+use macroquad::prelude::is_mouse_button_down;
 
 pub fn catch_mouse_event(
     ms: &mut MouseState,
