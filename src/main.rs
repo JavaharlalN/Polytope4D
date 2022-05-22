@@ -103,7 +103,7 @@ pub fn catch_hover(
     windows: &WindowGroup,
 ) {
     for i in 0..buttons.len() {
-        let (x, y) = buttons[i].get_pos(&windows.main);
+        let (x, y) = buttons[i].get_pos(Some(&windows.main));
         let (w, h) = buttons[i].size();
         *hover = cursor.intersect_with_button(
             buttons.get(i).unwrap(),
@@ -169,7 +169,6 @@ async fn main() {
         Button::Click(ClickButton::new(40.0, 0.0, 20.0, 20.0, "sprites/import.png",   Align::TopLeft,  ButtonType::Import)),
         Button::Click(ClickButton::new(60.0, 0.0, 20.0, 20.0, "sprites/save.png",     Align::TopLeft,  ButtonType::Export)),
     ];
-    buttons[0].set_active(true);
     let mut windows = WindowGroup {
         main:         Window::Main(MainWindow::new(screen_width(), screen_height())),
         scene:        Window::Scene(SceneWindow::new(screen_width(), screen_height())),
@@ -182,6 +181,7 @@ async fn main() {
             Button::Check(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png",  Align::TopRight, ButtonType::SelectionType)),
             Button::Check(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png",  Align::TopRight, ButtonType::SelectionType)),
         ];
+        main.buttons[0].set_active(true);
     }
 
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
@@ -228,8 +228,6 @@ async fn main() {
         draw_windows(
             &windows,
             &objects,
-            &camera,
-            &angle,
             &buttons,
             &axes,
             &motion_axes,

@@ -100,8 +100,6 @@ pub fn draw_axes(axes: &Axes, w: f32, h: f32) {
 pub fn draw_main_window(
     window:      &Window,
     objects:     &Vec<Object>,
-    camera:      &Camera,
-    angle:       &Angle,
     buttons:     &Vec<Button>,
     axes:        &Axes,
     motion_axes: &MotionAxes,
@@ -122,13 +120,12 @@ pub fn draw_main_window(
     }
     draw_axes(axes, window.config().w, window.config().h);
     draw_motion_axes(motion_axes);
-    draw_cursor(cursor);
-    for button in buttons {
-        draw_button(
-            button,
-            window,
-        );
+    if let Some(buttons) = window.buttons() {
+        for button in buttons {
+            draw_button(button, Some(window));
+        }
     }
+    draw_cursor(cursor);
 }
 
 pub fn draw_overlapping_window(
@@ -141,27 +138,26 @@ pub fn draw_overlapping_window(
 pub fn draw_windows<'a>(
     windows:     &'a WindowGroup,
     objects:     &Vec<Object>,
-    camera:      &Camera,
-    angle:       &Angle,
     buttons:     &Vec<Button>,
     axes:        &Axes,
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
 ) {
-    if !windows.instructions.hidden {
-        draw_overlapping_window(&windows.instructions, cursor);
-        return;
-    }
+    // if !windows.instructions.hidden {
+    //     draw_overlapping_window(&windows.instructions, cursor);
+    //     return;
+    // }
     draw_main_window(
         &windows.main,
         objects,
-        camera,
-        angle,
         buttons,
         axes,
         motion_axes,
         cursor,
     );
+    for button in buttons {
+        draw_button( button, None);
+    }
 }
 
 pub fn draw_vertices(vertices: Vec<Vec4f>) {
@@ -200,7 +196,7 @@ pub fn draw_cursor_overlay(cursor: Cursor) {
     );
 }
 
-pub fn draw_button(button: &Button, window: &Window) {
+pub fn draw_button(button: &Button, window: Option<&Window>) {
     let k = if button.is_hover() { 0.6 } else { 0.5 };
     let (x, y) = button.get_pos(window);
     let (w, h) = button.size();

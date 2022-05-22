@@ -46,6 +46,27 @@ impl Window {
             Window::Scene(win) => {win.config.w = w; win.config.h = h},
         }
     }
+
+    pub fn is_hidden(&self) -> bool {
+        match self {
+            Window::Main(win) => { win.hidden },
+            Window::Scene(win) => { win.hidden },
+        }
+    }
+
+    pub fn set_visibility(&mut self, visible: bool) {
+        match self {
+            Window::Main(win) => { win.hidden = !visible },
+            Window::Scene(win) => { win.hidden = !visible },
+        }
+    }
+
+    pub fn buttons(&self) -> Option<&Vec<Button>> {
+        match self {
+            Window::Main(win) => { Some(&win.buttons) },
+            Window::Scene(_) => { None },
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -71,6 +92,7 @@ pub struct Parameters {
 pub struct MainWindow {
     pub config:  Parameters,
     pub buttons: Vec<Button>,
+    pub hidden:  bool,
 }
 
 #[derive(Debug, Clone)]
@@ -82,6 +104,7 @@ pub struct SceneWindow {
     pub right_area:  HintArea,
     pub top_area:    HintArea,
     pub bottom_area: HintArea,
+    pub hidden:      bool,
 }
 
 pub struct WindowGroup {
@@ -114,6 +137,7 @@ impl MainWindow {
                 name:    "Main".to_string(),
             },
             buttons: vec![],
+            hidden: false,
         }
     }
 
@@ -160,6 +184,7 @@ impl SceneWindow {
             right_area:  HintArea::new(50.0, HintAlign::RIGHT),
             bottom_area: HintArea::new(50.0, HintAlign::BOTTOM),
             top_area:    HintArea::new(50.0, HintAlign::TOP),
+            hidden: false,
         }
     }
 }

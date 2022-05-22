@@ -144,9 +144,15 @@ impl Button {
         }
     }
 
-    pub fn get_pos(&self, window: &Window) -> (f32, f32) {
-        let (xw, yw) = window.pos();
-        let (w, h) = window.size();
+    pub fn get_pos(&self, window: Option<&Window>) -> (f32, f32) {
+        let (xw, yw) = match window {
+            Some(win) => win.pos(),
+            None => (0.0, 0.0),
+        };
+        let (w, h) = match window {
+            Some(win) => win.size(),
+            None => (screen_width(), screen_height()),
+        };
         let (xb, yb) = self.offset();
         match self.align() {
             Align::Middle       => (xw + xb + w / 2.0, yw + yb + h / 2.0),

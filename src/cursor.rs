@@ -61,7 +61,7 @@ impl Cursor {
         button: &Button,
         window: &Window,
     ) -> bool {
-        let (x, y) = button.get_pos(window);
+        let (x, y) = button.get_pos(Some(window));
         let (w, h) = button.size();
         self.real.x >= x && self.real.x < x + w &&
         self.real.y >= y && self.real.y < y + h
