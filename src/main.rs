@@ -33,6 +33,7 @@ use macroquad::prelude::mouse_wheel;
 use macroquad::prelude::draw_text_ex;
 use macroquad::prelude::draw_texture;
 use macroquad::prelude::screen_width;
+use macroquad::prelude::load_ttf_font;
 use macroquad::prelude::screen_height;
 use macroquad::prelude::mouse_position;
 use macroquad::prelude::draw_rectangle;
@@ -40,6 +41,26 @@ use macroquad::prelude::clear_background;
 
 lazy_static! {
     static ref SCREEN_SIZE: (u64, u64) = rdev::display_size().unwrap();
+    static ref COMFORTAA_BOLD: Font = {
+        let future = load_ttf_font("fonts/Comfortaa-Bold.ttf");
+        tokio::runtime::Runtime::new().unwrap().block_on(future).unwrap()
+    };
+    static ref COMFORTAA_SEMIBOLD: Font = {
+        let future = load_ttf_font("fonts/Comfortaa-SemiBold.ttf");
+        tokio::runtime::Runtime::new().unwrap().block_on(future).unwrap()
+    };
+    static ref COMFORTAA: Font = {
+        let future = load_ttf_font("fonts/Comfortaa-Medium.ttf");
+        tokio::runtime::Runtime::new().unwrap().block_on(future).unwrap()
+    };
+    static ref COMFORTAA_REGULAR: Font = {
+        let future = load_ttf_font("fonts/Comfortaa-Regular.ttf");
+        tokio::runtime::Runtime::new().unwrap().block_on(future).unwrap()
+    };
+    static ref COMFORTAA_LIGHT: Font = {
+        let future = load_ttf_font("fonts/Comfortaa-Light.ttf");
+        tokio::runtime::Runtime::new().unwrap().block_on(future).unwrap()
+    };
 }
 
 fn find_closest_vertice(x: f32, y: f32, vertices: &Vec<Vec4f>) -> Option<usize> {
@@ -229,6 +250,8 @@ async fn main() {
         ];
         main.buttons[0].set_active(true);
     }
+    windows.main.hide();
+    windows.instructions.show();
 
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
     let mut cursor = Cursor::new(mouse_position());
@@ -240,7 +263,7 @@ async fn main() {
     let mut motion_axes = MotionAxes::new();
     let mut clipboard = Object::empty();
     loop {
-        clear_background(Color::new(0.8, 0.8, 0.8, 1.0));
+        clear_background(Color::new(0.55294, 0.55294, 0.55294, 1.0));
         mouse_state.scroll_delta = mouse_wheel().1;
         let x_last = mouse_state.pos.0;
         let y_last = mouse_state.pos.1;
