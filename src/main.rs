@@ -153,6 +153,13 @@ fn window_config() -> Conf {
     }
 }
 
+fn update_buttons(buttons: &mut Vec<Button>, hover_i: usize) {
+    for i in 0..buttons.len() {
+        let btn = buttons.get_mut(i).unwrap();
+        btn.set_hover(i == hover_i);
+    }
+}
+
 #[macroquad::main(window_config)]
 async fn main() {
     show_mouse(false);
@@ -170,6 +177,7 @@ async fn main() {
     let mut windows = WindowGroup {
         main: Window::Main(MainWindow::new(screen_width(), screen_height())),
         scene: Window::Scene(SceneWindow::new(screen_width(), screen_height())),
+        overlapping: vec![OverlappingWindow::instructions().unwrap()],
     };
 
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
@@ -195,6 +203,7 @@ async fn main() {
         }
         let mut hover = false;
         let mut hover_i = buttons.len();
+        let d = dist(Vec4f::new0(), camera.c);
         catch_hover(&mut cursor, &mut buttons, &mut hover, &mut hover_i, &windows);
         catch_mouse_event(
             &mut mouse_state,
@@ -208,30 +217,24 @@ async fn main() {
             &windows.main,
         );
         catch_keyboard_event(&mut objects, &mut clipboard, &mut motion_axes);
-        draw_windows(&windows);
-        cursor.move_to(mouse_state.pos.0, mouse_state.pos.1);
-        let d = dist(Vec4f::new0(), camera.c);
-        for obj in (&mut objects).iter_mut() {
+        update_buttons(&mut buttons, hover_i);
+        for obj in objects.iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
-            draw_edges(obj);
-            if buttons.get(0).unwrap().is_active() {
-                draw_vertices(obj.vertices.clone());
-            }
         }
+        draw_windows(
+            &windows,
+            &objects,
+            &camera,
+            &angle,
+            &buttons,
+            &axes,
+            &motion_axes,
+            &cursor,
+        );
+        if !hover { cursor.reset(); }
+        cursor.move_to(mouse_state.pos.0, mouse_state.pos.1);
         axes.calc(&angle, &windows.main);
         motion_axes.calc(&angle, &windows.main);
-        draw_axes(&axes, windows.main.config().w, windows.main.config().h);
-        draw_motion_axes(&motion_axes);
-        draw_cursor(&cursor);
-        if !hover { cursor.reset(); }
-        for i in 0..buttons.len() {
-            let btn = buttons.get_mut(i).unwrap();
-            btn.set_hover(i == hover_i);
-            draw_button(
-                btn,
-                &windows.main,
-            );
-        }
 
         if mouse_state.cursor_transform_timer.elapsed().as_millis() >= CUR_TRANSFORM_TO {
             mouse_state.cursor_transform_timer = Instant::now();
