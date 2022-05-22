@@ -2,10 +2,13 @@ use super::*;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Align {
+    Middle,
     TopLeft,
     TopRight,
+    TopCenter,
     BottomLeft,
     BottomRight,
+    BottomCenter,
 }
 
 #[derive(Debug, Clone)]
@@ -146,10 +149,13 @@ impl Button {
         let (w, h) = window.size();
         let (xb, yb) = self.offset();
         match self.align() {
-            Align::TopLeft     => (xw + xb,     yw + yb),
-            Align::TopRight    => (xw + xb + w, yw + yb),
-            Align::BottomLeft  => (xw + xb,     yw + yb + h),
-            Align::BottomRight => (xw + xb + w, yw + yb + h),
+            Align::Middle       => (xw + xb + w / 2.0, yw + yb + h / 2.0),
+            Align::TopLeft      => (xw + xb,           yw + yb          ),
+            Align::TopRight     => (xw + xb + w,       yw + yb          ),
+            Align::TopCenter    => (xw + xb + w / 2.0, yw + yb          ),
+            Align::BottomLeft   => (xw + xb,           yw + yb + h      ),
+            Align::BottomRight  => (xw + xb + w,       yw + yb + h      ),
+            Align::BottomCenter => (xw + xb + w,       yw + yb + h / 2.0),
         }
     }
 
