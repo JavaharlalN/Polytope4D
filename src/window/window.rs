@@ -85,15 +85,17 @@ pub struct SceneWindow {
 }
 
 pub struct WindowGroup {
-    pub main:  Window,
-    pub scene: Window,
+    pub main:        Window,
+    pub scene:       Window,
+    pub overlapping: Vec<OverlappingWindow>,
 }
 
 impl WindowGroup {
     pub fn copy(self) -> WindowGroup {
         WindowGroup {
-            main:  self.main,
-            scene: self.scene,
+            main:        self.main,
+            scene:       self.scene,
+            overlapping: vec![],
         }
     }
 }
@@ -123,13 +125,13 @@ impl HintArea {
     pub fn new(side: f32, align: HintAlign) -> HintArea {
         HintArea{
             w: match align {
-                HintAlign::LEFT => side,
+                HintAlign::LEFT  => side,
                 HintAlign::RIGHT => side,
                 _ => 200.0
             },
             h: match align {
                 HintAlign::BOTTOM => side,
-                HintAlign::TOP => side,
+                HintAlign::TOP    => side,
                 _ => 200.0
             },
             align,
