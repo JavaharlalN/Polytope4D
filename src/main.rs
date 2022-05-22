@@ -164,21 +164,25 @@ fn update_buttons(buttons: &mut Vec<Button>, hover_i: usize) {
 async fn main() {
     show_mouse(false);
     let mut buttons = vec![
-        Button::Check(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png",  Align::TopRight, ButtonType::SelectionType)),
-        Button::Check(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png",  Align::TopRight, ButtonType::SelectionType)),
-        Button::Check(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png",  Align::TopRight, ButtonType::SelectionType)),
-        Button::Check(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png",  Align::TopRight, ButtonType::SelectionType)),
-        Button::Click(ClickButton::new(   0.0, 0.0, 20.0, 20.0, "sprites/logo.png",     Align::TopLeft,  ButtonType::Info)),
-        Button::Click(ClickButton::new(  20.0, 0.0, 20.0, 20.0, "sprites/settings.png", Align::TopLeft,  ButtonType::Settings)),
-        Button::Click(ClickButton::new(  40.0, 0.0, 20.0, 20.0, "sprites/import.png",   Align::TopLeft,  ButtonType::Import)),
-        Button::Click(ClickButton::new(  60.0, 0.0, 20.0, 20.0, "sprites/save.png",     Align::TopLeft,  ButtonType::Export)),
+        Button::Click(ClickButton::new( 0.0, 0.0, 20.0, 20.0, "sprites/logo.png",     Align::TopLeft,  ButtonType::Info)),
+        Button::Click(ClickButton::new(20.0, 0.0, 20.0, 20.0, "sprites/settings.png", Align::TopLeft,  ButtonType::Settings)),
+        Button::Click(ClickButton::new(40.0, 0.0, 20.0, 20.0, "sprites/import.png",   Align::TopLeft,  ButtonType::Import)),
+        Button::Click(ClickButton::new(60.0, 0.0, 20.0, 20.0, "sprites/save.png",     Align::TopLeft,  ButtonType::Export)),
     ];
     buttons[0].set_active(true);
     let mut windows = WindowGroup {
-        main: Window::Main(MainWindow::new(screen_width(), screen_height())),
-        scene: Window::Scene(SceneWindow::new(screen_width(), screen_height())),
-        overlapping: vec![OverlappingWindow::instructions().unwrap()],
+        main:         Window::Main(MainWindow::new(screen_width(), screen_height())),
+        scene:        Window::Scene(SceneWindow::new(screen_width(), screen_height())),
+        instructions: OverlappingWindow::instructions().unwrap(),
     };
+    if let Window::Main(main) = &mut windows.main {
+        main.buttons = vec![
+            Button::Check(CheckButton::new(-120.0, 0.0, 30.0, 30.0, "sprites/select0.png",  Align::TopRight, ButtonType::SelectionType)),
+            Button::Check(CheckButton::new( -90.0, 0.0, 30.0, 30.0, "sprites/select1.png",  Align::TopRight, ButtonType::SelectionType)),
+            Button::Check(CheckButton::new( -60.0, 0.0, 30.0, 30.0, "sprites/select2.png",  Align::TopRight, ButtonType::SelectionType)),
+            Button::Check(CheckButton::new( -30.0, 0.0, 30.0, 30.0, "sprites/select3.png",  Align::TopRight, ButtonType::SelectionType)),
+        ];
+    }
 
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
     let mut cursor = Cursor::new(mouse_position());

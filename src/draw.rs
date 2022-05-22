@@ -148,11 +148,9 @@ pub fn draw_windows<'a>(
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
 ) {
-    for window in &windows.overlapping {
-        if !window.hidden {
-            draw_overlapping_window(window, cursor);
-            return;
-        }
+    if !windows.instructions.hidden {
+        draw_overlapping_window(&windows.instructions, cursor);
+        return;
     }
     draw_main_window(
         &windows.main,

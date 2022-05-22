@@ -85,17 +85,19 @@ pub struct SceneWindow {
 }
 
 pub struct WindowGroup {
-    pub main:        Window,
-    pub scene:       Window,
-    pub overlapping: Vec<OverlappingWindow>,
+    pub main:         Window,
+    pub scene:        Window,
+    // pub settings:     OverlappingWindow,
+    pub instructions: OverlappingWindow,
 }
 
 impl WindowGroup {
     pub fn copy(self) -> WindowGroup {
         WindowGroup {
-            main:        self.main,
-            scene:       self.scene,
-            overlapping: vec![],
+            main:         self.main,
+            scene:        self.scene,
+            // settings:     self.settings,
+            instructions: self.instructions
         }
     }
 }
