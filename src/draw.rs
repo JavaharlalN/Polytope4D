@@ -97,13 +97,72 @@ pub fn draw_axes(axes: &Axes, w: f32, h: f32) {
     }
 }
 
-pub fn draw_windows<'a>(windows: &'a WindowGroup) {
+pub fn draw_main_window(
+    window:      &Window,
+    objects:     &Vec<Object>,
+    camera:      &Camera,
+    angle:       &Angle,
+    buttons:     &Vec<Button>,
+    axes:        &Axes,
+    motion_axes: &MotionAxes,
+    cursor:      &Cursor,
+) {
     draw_rectangle(
-        windows.main.config().x,
-        windows.main.config().y,
-        windows.main.config().w,
-        windows.main.config().h,
+        window.config().x,
+        window.config().y,
+        window.config().w,
+        window.config().h,
         Color::new(0.3, 0.3, 0.3, 0.5),
+    );
+    for obj in objects.iter() {
+        draw_edges(obj);
+        if buttons.get(0).unwrap().is_active() {
+            draw_vertices(obj.vertices.clone());
+        }
+    }
+    draw_axes(axes, window.config().w, window.config().h);
+    draw_motion_axes(motion_axes);
+    draw_cursor(cursor);
+    for button in buttons {
+        draw_button(
+            button,
+            window,
+        );
+    }
+}
+
+pub fn draw_overlapping_window(
+    window: &OverlappingWindow,
+    cursor: &Cursor
+) {
+    draw_cursor(&cursor);
+}
+
+pub fn draw_windows<'a>(
+    windows:     &'a WindowGroup,
+    objects:     &Vec<Object>,
+    camera:      &Camera,
+    angle:       &Angle,
+    buttons:     &Vec<Button>,
+    axes:        &Axes,
+    motion_axes: &MotionAxes,
+    cursor:      &Cursor,
+) {
+    for window in &windows.overlapping {
+        if !window.hidden {
+            draw_overlapping_window(window, cursor);
+            return;
+        }
+    }
+    draw_main_window(
+        &windows.main,
+        objects,
+        camera,
+        angle,
+        buttons,
+        axes,
+        motion_axes,
+        cursor,
     );
 }
 
