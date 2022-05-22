@@ -266,7 +266,6 @@ pub fn lmb_click_event(
     xy:         (f32, f32),
     motion_axes: &mut MotionAxes,
 ) {
-	println!("");
     if hover && hover_i < buttons.len() && buttons[hover_i].is_check_button() {
         if is_key_down(KeyCode::LeftShift) {
             if get_enabled_buttons_count(buttons) > 1 {
@@ -299,7 +298,7 @@ pub fn lmb_click_event(
                 break;
             }
         }
-        if buttons[1].is_hover() {
+        if buttons[1].is_active() {
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
