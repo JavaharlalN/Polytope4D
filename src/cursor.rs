@@ -59,9 +59,9 @@ impl Cursor {
     pub fn intersect_with_button(
         self,
         button: &Button,
-        window: &Window,
+        window: Option<(f32, f32, f32, f32)>,
     ) -> bool {
-        let (x, y) = button.get_pos(Some(window));
+        let (x, y) = button.get_pos(window);
         let (w, h) = button.size();
         self.real.x >= x && self.real.x < x + w &&
         self.real.y >= y && self.real.y < y + h
@@ -98,6 +98,10 @@ impl Cursor {
         self.conf = self.real.clone();
         self.rect = true;
         self.step = 0;
+    }
+
+    pub fn is_pos_set(&self, x: f32, y: f32) -> bool{
+        self.need.x - x  + self.need.y - y == 0.0
     }
 
     pub fn reset(&mut self) {

@@ -120,19 +120,19 @@ pub fn draw_main_window(
     }
     draw_axes(axes, window.config().w, window.config().h);
     draw_motion_axes(motion_axes);
+    draw_cursor(cursor);
     if let Some(buttons) = window.buttons() {
         for button in buttons {
-            draw_button(button, Some(window));
+            draw_button(button, Some(window.as_tuple()));
         }
     }
-    draw_cursor(cursor);
 }
 
 pub fn draw_overlapping_window(
     window: &OverlappingWindow,
     cursor: &Cursor
 ) {
-    draw_cursor(&cursor);
+    draw_cursor(cursor);
 }
 
 pub fn draw_windows<'a>(
@@ -196,7 +196,7 @@ pub fn draw_cursor_overlay(cursor: Cursor) {
     );
 }
 
-pub fn draw_button(button: &Button, window: Option<&Window>) {
+pub fn draw_button(button: &Button, window: Option<(f32, f32, f32, f32)>) {
     let k = if button.is_hover() { 0.6 } else { 0.5 };
     let (x, y) = button.get_pos(window);
     let (w, h) = button.size();

@@ -95,29 +95,65 @@ pub fn get_enabled_buttons_count(buttons: &Vec<Button>) -> i32 {
     counter
 }
 
+pub fn clear_hover(buttons: &mut Vec<Button>, windows: &mut WindowGroup) {
+    for button in buttons.iter_mut() {
+        button.set_hover(false);
+    }
+    windows.main.clear_hover();
+    windows.scene.clear_hover();
+}
+
+pub fn catch_hover_for_window(
+    cursor: &mut Cursor,
+    hover:  &mut bool,
+    window: &mut Window,
+) -> bool { // hovered
+    if window.is_hidden() { return false }
+    let geometry = window.as_tuple();
+    match window.buttons_mut() {
+        Some(buttons) => {
+            for button in buttons {
+                let (x, y) = button.get_pos(Some(geometry));
+                let (w, h) = button.size();
+                if cursor.intersect_with_button(button, Some(geometry)) {
+                    *hover = true;
+                    if !cursor.rect || !cursor.is_pos_set(x, y) {
+                        cursor.set(x, y, w, h + 2.0);
+                    }
+                    button.set_hover(true);
+                    return true;
+                }
+            }
+            return false;
+        },
+        None => { return false },
+    }
+}
+
 pub fn catch_hover(
     cursor:  &mut Cursor,
     buttons: &mut Vec<Button>,
     hover:   &mut bool,
-    hover_i: &mut usize,
-    windows: &WindowGroup,
+    windows: &mut WindowGroup,
 ) {
-    for i in 0..buttons.len() {
-        let (x, y) = buttons[i].get_pos(Some(&windows.main));
-        let (w, h) = buttons[i].size();
-        *hover = cursor.intersect_with_button(
-            buttons.get(i).unwrap(),
-            &windows.main,
-        );
-
-        if *hover {
-            *hover_i = i;
-            if !cursor.rect || !buttons[i].is_hover() {
+    clear_hover(buttons, windows);
+    *hover = false;
+    for button in buttons.iter_mut() {
+        let (x, y) = button.get_pos(None);
+        let (w, h) = button.size();
+        if cursor.intersect_with_button(
+            button,
+            None,
+        ) {
+            *hover = true;
+            if !cursor.rect || !cursor.is_pos_set(x, y) {
                 cursor.set(x, y, w, h + 2.0);
             }
-            break;
+            button.set_hover(true);
+            return;
         }
     }
+    catch_hover_for_window(cursor, hover, &mut windows.main);
 }
 
 pub struct MouseState {
@@ -153,10 +189,20 @@ fn window_config() -> Conf {
     }
 }
 
-fn update_buttons(buttons: &mut Vec<Button>, hover_i: usize) {
-    for i in 0..buttons.len() {
-        let btn = buttons.get_mut(i).unwrap();
-        btn.set_hover(i == hover_i);
+fn update_buttons(windows: &mut WindowGroup) {
+    let hover = windows.main.hover_i();
+    match windows.main.buttons_mut() {
+        Some(buttons) => {
+            match hover {
+                Some(hover_i) => {
+                    for (i, button) in buttons.iter_mut().enumerate() {
+                        button.set_hover(i == hover_i);
+                    }
+                },
+                None => (),
+            }
+        }
+        None => (),
     }
 }
 
@@ -206,22 +252,20 @@ async fn main() {
             last_size = new_size;
         }
         let mut hover = false;
-        let mut hover_i = buttons.len();
         let d = dist(Vec4f::new0(), camera.c);
-        catch_hover(&mut cursor, &mut buttons, &mut hover, &mut hover_i, &windows);
+        catch_hover(&mut cursor, &mut buttons, &mut hover, &mut windows);
         catch_mouse_event(
             &mut mouse_state,
-            hover,
-            hover_i,
+            &hover,
             &mut buttons,
             &mut objects,
             (x_last, y_last),
             &mut motion_axes,
             &mut angle,
-            &windows.main,
+            &windows,
         );
         catch_keyboard_event(&mut objects, &mut clipboard, &mut motion_axes);
-        update_buttons(&mut buttons, hover_i);
+        update_buttons(&mut windows);
         for obj in objects.iter_mut() {
             obj.calc_vertices(&angle, d, &windows.main);
         }

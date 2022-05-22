@@ -42,15 +42,15 @@ impl Window {
 
     pub fn set_size(&mut self, w: f32, h: f32) {
         match self {
-            Window::Main(win) => {win.config.w = w; win.config.h = h},
-            Window::Scene(win) => {win.config.w = w; win.config.h = h},
+            Window::Main(win) => { win.config.w = w; win.config.h = h },
+            Window::Scene(win) => { win.config.w = w; win.config.h = h },
         }
     }
 
     pub fn is_hidden(&self) -> bool {
         match self {
-            Window::Main(win) => { win.hidden },
-            Window::Scene(win) => { win.hidden },
+            Window::Main(win) => win.hidden,
+            Window::Scene(win) => win.hidden,
         }
     }
 
@@ -63,9 +63,50 @@ impl Window {
 
     pub fn buttons(&self) -> Option<&Vec<Button>> {
         match self {
-            Window::Main(win) => { Some(&win.buttons) },
-            Window::Scene(_) => { None },
+            Window::Main(win) => Some(&win.buttons),
+            Window::Scene(_) => None,
         }
+    }
+
+    pub fn buttons_mut(&mut self) -> Option<&mut Vec<Button>> {
+        match self {
+            Window::Main(win) => Some(&mut win.buttons),
+            Window::Scene(_) => None,
+        }
+    }
+
+    pub fn hover_i(&self) -> Option<usize> {
+        match self {
+            Window::Main(win) => win.hover_i,
+            Window::Scene(_) => None,
+        }
+    }
+
+    pub fn hover_i_mut(&mut self) -> Option<usize> {
+        match self {
+            Window::Main(win) => win.hover_i,
+            Window::Scene(_) => None,
+        }
+    }
+
+    pub fn buttons_count(&self) -> usize {
+        match self {
+            Window::Main(win) => win.buttons.len(),
+            Window::Scene(_) => 0,
+        }
+    }
+
+    pub fn clear_hover(&mut self) {
+        if self.buttons().is_none() { return; }
+        for button in self.buttons_mut().unwrap() {
+            button.set_hover(false);
+        }
+    }
+
+    pub fn as_tuple(&self) -> (f32, f32, f32, f32) {
+        let (x, y) = self.pos();
+        let (w, h) = self.size();
+        return (x, y, w, h);
     }
 }
 
@@ -93,6 +134,7 @@ pub struct MainWindow {
     pub config:  Parameters,
     pub buttons: Vec<Button>,
     pub hidden:  bool,
+    pub hover_i: Option<usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -138,6 +180,7 @@ impl MainWindow {
             },
             buttons: vec![],
             hidden: false,
+            hover_i: None,
         }
     }
 

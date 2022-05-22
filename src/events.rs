@@ -8,14 +8,13 @@ use macroquad::prelude::is_mouse_button_down;
 
 pub fn catch_mouse_event(
     ms:          &mut MouseState,
-    hover:       bool,
-    hover_i:     usize,
+    hover:       &bool,
     buttons:     &mut Vec<Button>,
     objects:     &mut Vec<Object>,
     xy_last:    (f32, f32),
     motion_axes: &mut MotionAxes,
     angle:       &mut Angle,
-    window:      &Window,
+    windows:      &WindowGroup,
 ) {
     if is_mouse_button_down(MouseButton::Left) {
         lmb_down_event(&mut ms.is_lmb_down, &mut ms.lmb_click_timer, buttons);
@@ -24,17 +23,17 @@ pub fn catch_mouse_event(
             lmb_click_event(
                 hover,
                 buttons,
-                hover_i,
                 objects,
                 ms.pos,
                 motion_axes,
+                windows,
             );
         }
 		lmb_up_event(buttons, objects);
         ms.is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
         rmb_down_event(&mut ms.is_rmb_down, &mut ms.rmb_click_timer, motion_axes);
-        drag_event(ms.pos, xy_last, angle, ms.scroll_delta, motion_axes, objects, window);
+        drag_event(ms.pos, xy_last, angle, ms.scroll_delta, motion_axes, objects, &windows.main);
     } else if ms.is_rmb_down {
         mouse_up_event(&mut ms.is_rmb_down, motion_axes, objects);
     }
@@ -259,26 +258,29 @@ pub fn drag_event(
 }
 
 pub fn lmb_click_event(
-    hover:       bool,
+    hover:       &bool,
     buttons:     &mut Vec<Button>,
-    hover_i:     usize,
     objects:     &mut Vec<Object>,
     xy:         (f32, f32),
     motion_axes: &mut MotionAxes,
+    windows:     &WindowGroup,
 ) {
-    if hover && hover_i < buttons.len() && buttons[hover_i].is_check_button() {
-        if is_key_down(KeyCode::LeftShift) {
-            if get_enabled_buttons_count(buttons) > 1 {
-                let h = buttons.get(hover_i).unwrap().is_active();
-                buttons.get_mut(hover_i).unwrap().set_active(!h);
-            } else if !buttons[hover_i].is_active() {
+    let hover = windows.main.hover_i();
+    if let Some(hover_i) = hover {
+        if  hover_i < windows.main.buttons_count() {
+            if is_key_down(KeyCode::LeftShift) {
+                if get_enabled_buttons_count(windows.main.buttons().unwrap()) > 1 {
+                    let h = buttons.get(hover_i).unwrap().is_active();
+                    buttons.get_mut(hover_i).unwrap().set_active(!h);
+                } else if !buttons[hover_i].is_active() {
+                    buttons[hover_i].set_active(true);
+                }
+            } else {
+                for b in buttons.iter_mut() {
+                    b.set_active(false);
+                }
                 buttons[hover_i].set_active(true);
             }
-        } else {
-            for b in buttons.iter_mut() {
-                b.set_active(false);
-            }
-            buttons[hover_i].set_active(true);
         }
     }
     for obj in objects.iter_mut() {

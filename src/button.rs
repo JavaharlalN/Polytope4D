@@ -144,13 +144,13 @@ impl Button {
         }
     }
 
-    pub fn get_pos(&self, window: Option<&Window>) -> (f32, f32) {
+    pub fn get_pos(&self, window: Option<(f32, f32, f32, f32)>) -> (f32, f32) {
         let (xw, yw) = match window {
-            Some(win) => win.pos(),
+            Some(win) => (win.0, win.1),
             None => (0.0, 0.0),
         };
         let (w, h) = match window {
-            Some(win) => win.size(),
+            Some(win) => (win.2, win.3),
             None => (screen_width(), screen_height()),
         };
         let (xb, yb) = self.offset();
