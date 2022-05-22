@@ -1,5 +1,8 @@
 use super::ObjectField;
-use crate::{objects::Object, button::Button};
+use crate::button::Align;
+use crate::button::Button;
+use crate::objects::Object;
+use macroquad::prelude::Color;
 
 #[derive(Debug, Copy, Clone)]
 pub enum HintAlign {
@@ -154,5 +157,110 @@ impl SceneWindow {
             bottom_area: HintArea::new(50.0, HintAlign::BOTTOM),
             top_area:    HintArea::new(50.0, HintAlign::TOP),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Panel {
+    pub buttons: Vec<Button>,
+    pub active_button: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct Panels {
+    left: Option<Panel>,
+    top: Option<Panel>,
+    right: Option<Panel>,
+    bottom: Option<Panel>,
+}
+
+impl Panels {
+    pub fn empty() -> Self {
+        Self {
+            left: None,
+            top: None,
+            right: None,
+            bottom: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TextItem {
+    pub offset: (f32, f32),
+    pub size: f32,
+    pub value: String,
+    pub width: Option<f32>,
+    pub height: Option<f32>,
+    pub color: Color,
+    pub align: Align
+}
+
+impl TextItem {
+    pub fn new(value: &str, offset: (f32, f32), size: f32, color: Color, align: Align) -> Self {
+        Self {
+            offset,
+            size,
+            value: value.to_string(),
+            width: None,
+            height: None,
+            color,
+            align,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum ContentItem {
+    H1(TextItem),
+    H2(TextItem),
+    H3(TextItem),
+    Text(TextItem),
+    Div((f32, f32), Vec<ContentItem>),
+}
+
+impl ContentItem {
+    pub fn header(value: &str, offset: (f32, f32), level: usize, color: Color, align: Align) -> Result<Self, String> {
+        match level {
+            1 => Ok(Self::H1(TextItem::new(value, offset, 48.0, color, align))),
+            2 => Ok(Self::H2(TextItem::new(value, offset, 36.0, color, align))),
+            3 => Ok(Self::H3(TextItem::new(value, offset, 24.0, color, align))),
+            _ => Err("invalid header level".to_string()),
+        }
+    }
+
+    pub fn text(value: &str, offset: (f32, f32), color: Color, align: Align) -> Self {
+        Self::Text(TextItem::new(value, offset, 12.0, color, align))
+    }
+
+    pub fn div(content: Vec<ContentItem>, offset: (f32, f32)) -> Self {
+        Self::Div(offset, content)
+    }
+}
+
+pub type Content = Vec<ContentItem>;
+
+#[derive(Debug, Clone)]
+pub struct OverlappingWindow {
+    pub panels: Panels,
+    pub hidden: bool,
+    pub content: Content,
+}
+
+impl OverlappingWindow {
+    pub fn instructions() -> Result<Self, String> {
+        let mut content = Content::new();
+        content.push(ContentItem::header(
+            "Polytope 4D",
+            (0.0, 0.0),
+            1,
+            Color::new(0.0, 0.6, 1.0, 1.0),
+            Align::TopCenter)?
+        );
+        Ok(Self {
+            panels: Panels::empty(),
+            hidden: false,
+            content,
+        })
     }
 }
