@@ -105,13 +105,7 @@ pub fn draw_main_window(
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
 ) {
-    draw_rectangle(
-        window.config().x,
-        window.config().y,
-        window.config().w,
-        window.config().h,
-        Color::new(0.3, 0.3, 0.3, 0.5),
-    );
+    if window.is_hidden() { return }
     for obj in objects.iter() {
         draw_edges(obj);
         if buttons.get(0).unwrap().is_active() {
@@ -132,6 +126,18 @@ pub fn draw_overlapping_window(
     window: &OverlappingWindow,
     cursor: &Cursor
 ) {
+    if !window.hidden {
+        for item in &window.content {
+            let (x, y) = item.get_pos();
+            match item {
+                ContentItem::H1(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
+                ContentItem::H2(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
+                ContentItem::H3(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
+                ContentItem::Text(t) => { draw_text_ex(&t.value, x, y, t.get_params()); },
+                ContentItem::Div(_, _, _)       => todo!(),
+            }
+        }
+    }
     draw_cursor(cursor);
 }
 
@@ -143,10 +149,7 @@ pub fn draw_windows<'a>(
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
 ) {
-    // if !windows.instructions.hidden {
-    //     draw_overlapping_window(&windows.instructions, cursor);
-    //     return;
-    // }
+    draw_overlapping_window(&windows.instructions, cursor);
     draw_main_window(
         &windows.main,
         objects,

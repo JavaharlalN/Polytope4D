@@ -1,8 +1,16 @@
 use super::ObjectField;
+use crate::COMFORTAA;
+use crate::COMFORTAA_BOLD;
+use crate::COMFORTAA_LIGHT;
 use crate::button::Align;
 use crate::button::Button;
 use crate::objects::Object;
 use macroquad::prelude::Color;
+use macroquad::prelude::Font;
+use macroquad::prelude::TextParams;
+use macroquad::prelude::measure_text;
+use macroquad::prelude::screen_width;
+use macroquad::prelude::screen_height;
 
 #[derive(Debug, Copy, Clone)]
 pub enum HintAlign {
@@ -107,6 +115,14 @@ impl Window {
         let (x, y) = self.pos();
         let (w, h) = self.size();
         return (x, y, w, h);
+    }
+
+    pub fn show(&mut self) {
+        self.set_visibility(true);
+    }
+
+    pub fn hide(&mut self) {
+        self.set_visibility(false);
     }
 }
 
@@ -260,24 +276,50 @@ impl Panels {
 #[derive(Debug, Clone)]
 pub struct TextItem {
     pub offset: (f32, f32),
-    pub size: f32,
+    pub size: u16,
     pub value: String,
-    pub width: Option<f32>,
-    pub height: Option<f32>,
+    pub width: f32,
+    pub height: f32,
     pub color: Color,
     pub align: Align
 }
 
 impl TextItem {
-    pub fn new(value: &str, offset: (f32, f32), size: f32, color: Color, align: Align) -> Self {
+    pub fn new(value: &str, offset: (f32, f32), size: u16, color: Color, align: Align) -> Self {
+        let dimentions = measure_text(value, Some(*COMFORTAA), size, 1.0);
         Self {
             offset,
             size,
             value: value.to_string(),
-            width: None,
-            height: None,
+            width: dimentions.width,
+            height: dimentions.height + dimentions.offset_y,
             color,
             align,
+        }
+    }
+
+    pub fn get_pos(&self) -> (f32, f32) {
+        let (x, y) = self.offset;
+        let (w, h) = (screen_width(), screen_height());
+        let (sw, sh) = (self.width, self.height);
+        match self.align {
+            Align::Middle       => (x + (w - sw) / 2.0, y + (h + sh) / 2.0),
+            Align::TopLeft      => (x,                  y + 22.0 + sh),
+            Align::TopRight     => (x +  w - sw,        y + 22.0 + sh),
+            Align::TopCenter    => (x + (w - sw) / 2.0, y + 22.0 + sh),
+            Align::BottomLeft   => (x,                  y + h),
+            Align::BottomRight  => (x +  w - sw,        y + h),
+            Align::BottomCenter => (x + (w - sw) / 2.0, y + h),
+        }
+    }
+
+    pub fn get_params(&self) -> TextParams {
+        TextParams {
+            font: *COMFORTAA,
+            font_size: self.size,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+            color: self.color,
         }
     }
 }
@@ -288,25 +330,35 @@ pub enum ContentItem {
     H2(TextItem),
     H3(TextItem),
     Text(TextItem),
-    Div((f32, f32), Vec<ContentItem>),
+    Div((f32, f32), Align, Content),
 }
 
 impl ContentItem {
     pub fn header(value: &str, offset: (f32, f32), level: usize, color: Color, align: Align) -> Result<Self, String> {
         match level {
-            1 => Ok(Self::H1(TextItem::new(value, offset, 48.0, color, align))),
-            2 => Ok(Self::H2(TextItem::new(value, offset, 36.0, color, align))),
-            3 => Ok(Self::H3(TextItem::new(value, offset, 24.0, color, align))),
+            1 => Ok(Self::H1(TextItem::new(value, offset, 48, color, align))),
+            2 => Ok(Self::H2(TextItem::new(value, offset, 36, color, align))),
+            3 => Ok(Self::H3(TextItem::new(value, offset, 24, color, align))),
             _ => Err("invalid header level".to_string()),
         }
     }
 
     pub fn text(value: &str, offset: (f32, f32), color: Color, align: Align) -> Self {
-        Self::Text(TextItem::new(value, offset, 12.0, color, align))
+        Self::Text(TextItem::new(value, offset, 12, color, align))
     }
 
-    pub fn div(content: Vec<ContentItem>, offset: (f32, f32)) -> Self {
-        Self::Div(offset, content)
+    pub fn div(content: Content, offset: (f32, f32), align: Align) -> Self {
+        Self::Div(offset, align, content)
+    }
+
+    pub fn get_pos(&self) -> (f32, f32) {
+        match self {
+            ContentItem::H1(t) => t.get_pos(),
+            ContentItem::H2(t) => t.get_pos(),
+            ContentItem::H3(t) => t.get_pos(),
+            ContentItem::Text(t) => t.get_pos(),
+            ContentItem::Div(pos, _, _) => *pos,
+        }
     }
 }
 
@@ -331,8 +383,16 @@ impl OverlappingWindow {
         );
         Ok(Self {
             panels: Panels::empty(),
-            hidden: false,
+            hidden: true,
             content,
         })
+    }
+
+    pub fn hide(&mut self) {
+        self.hidden = true;
+    }
+
+    pub fn show(&mut self) {
+        self.hidden = false;
     }
 }
