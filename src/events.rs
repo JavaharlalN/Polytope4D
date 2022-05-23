@@ -8,7 +8,6 @@ use macroquad::prelude::is_mouse_button_down;
 
 pub fn catch_mouse_event(
     ms:          &mut MouseState,
-    hover:       &bool,
     buttons:     &mut Vec<Button>,
     objects:     &mut Vec<Object>,
     xy_last:    (f32, f32),
@@ -21,8 +20,6 @@ pub fn catch_mouse_event(
     } else if ms.is_lmb_down { // lmb up event
         if ms.lmb_click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
             lmb_click_event(
-                hover,
-                buttons,
                 objects,
                 ms.pos,
                 motion_axes,
@@ -273,33 +270,32 @@ pub fn drag_event(
 }
 
 pub fn lmb_click_event(
-    hover:       &bool,
-    buttons:     &mut Vec<Button>,
     objects:     &mut Vec<Object>,
     xy:         (f32, f32),
     motion_axes: &mut MotionAxes,
-    windows:     &WindowGroup,
+    windows:     &mut WindowGroup,
 ) {
     let hover = windows.main.hover_i();
+    let st_buttons = windows.main.buttons_mut().unwrap(); // selection_type buttons
     if let Some(hover_i) = hover {
-        if  hover_i < windows.main.buttons_count() {
+        if  hover_i < st_buttons.len() {
             if is_key_down(KeyCode::LeftShift) {
-                if get_enabled_buttons_count(windows.main.buttons().unwrap()) > 1 {
-                    let h = buttons.get(hover_i).unwrap().is_active();
-                    buttons.get_mut(hover_i).unwrap().set_active(!h);
-                } else if !buttons[hover_i].is_active() {
-                    buttons[hover_i].set_active(true);
+                if get_enabled_buttons_count(st_buttons) > 1 {
+                    let h = st_buttons.get(hover_i).unwrap().is_active();
+                    st_buttons.get_mut(hover_i).unwrap().set_active(!h);
+                } else if !st_buttons[hover_i].is_active() {
+                    st_buttons[hover_i].set_active(true);
                 }
             } else {
-                for b in buttons.iter_mut() {
+                for b in st_buttons.iter_mut() {
                     b.set_active(false);
                 }
-                buttons[hover_i].set_active(true);
+                st_buttons[hover_i].set_active(true);
             }
         }
     }
     for obj in objects.iter_mut() {
-        if buttons[0].is_active() {
+        if st_buttons[0].is_active() {
             if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
                 let v = obj.vertices.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {
@@ -315,7 +311,7 @@ pub fn lmb_click_event(
                 break;
             }
         }
-        if buttons[1].is_active() {
+        if st_buttons[1].is_active() {
             if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
                 let e = obj.edges.get_mut(index).unwrap();
                 if is_key_down(KeyCode::LeftShift) {

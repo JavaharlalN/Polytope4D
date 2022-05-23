@@ -277,7 +277,6 @@ async fn main() {
         catch_hover(&mut cursor, &mut buttons, &mut hover, &mut windows);
         catch_mouse_event(
             &mut mouse_state,
-            &hover,
             &mut buttons,
             &mut objects,
             (x_last, y_last),

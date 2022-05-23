@@ -100,7 +100,6 @@ pub fn draw_axes(axes: &Axes, w: f32, h: f32) {
 pub fn draw_main_window(
     window:      &Window,
     objects:     &Vec<Object>,
-    buttons:     &Vec<Button>,
     axes:        &Axes,
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
@@ -108,7 +107,7 @@ pub fn draw_main_window(
     if window.is_hidden() { return }
     for obj in objects.iter() {
         draw_edges(obj);
-        if buttons.get(0).unwrap().is_active() {
+        if window.buttons().unwrap()[0].is_active() {
             draw_vertices(obj.vertices.clone());
         }
     }
@@ -129,8 +128,8 @@ pub fn draw_overlapping_window(
     if !window.hidden {
         for item in &window.content {
             let (x, y) = item.get_pos();
-            let sw = screen_width();
-            let sh = screen_height();
+            // let sw = screen_width();
+            // let sh = screen_height();
             // draw_rectangle(0.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top left
             // draw_rectangle(sw / 2.0 - 150.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top center
             // draw_rectangle(sw - 300.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top right
@@ -162,7 +161,6 @@ pub fn draw_windows<'a>(
     draw_main_window(
         &windows.main,
         objects,
-        buttons,
         axes,
         motion_axes,
         cursor,
@@ -228,7 +226,7 @@ pub fn draw_button(button: &Button, window: Option<(f32, f32, f32, f32)>) {
             x,     h - 1.0,
             x + w, h - 1.0,
             2.0,
-            Color::new(0.0, 0.6, 1.0, 1.0),
+            Color::new(0.0, 0.53333333, 0.93333333, 1.0),
         );
     }
 }

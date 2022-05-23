@@ -85,14 +85,12 @@ impl Window {
 
     pub fn hover_i(&self) -> Option<usize> {
         match self {
-            Window::Main(win) => win.hover_i,
-            Window::Scene(_) => None,
-        }
-    }
-
-    pub fn hover_i_mut(&mut self) -> Option<usize> {
-        match self {
-            Window::Main(win) => win.hover_i,
+            Window::Main(win) => {
+                for (i, b) in win.buttons.iter().enumerate() {
+                    if b.is_hover() { return Some(i); }
+                }
+                return None;
+            },
             Window::Scene(_) => None,
         }
     }
@@ -150,7 +148,6 @@ pub struct MainWindow {
     pub config:  Parameters,
     pub buttons: Vec<Button>,
     pub hidden:  bool,
-    pub hover_i: Option<usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -196,7 +193,6 @@ impl MainWindow {
             },
             buttons: vec![],
             hidden: false,
-            hover_i: None,
         }
     }
 
