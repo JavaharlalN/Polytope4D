@@ -276,41 +276,51 @@ impl Panels {
 #[derive(Debug, Clone)]
 pub struct TextItem {
     pub offset: (f32, f32),
-    pub size: u16,
-    pub value: String,
-    pub width: f32,
-    pub height: f32,
-    pub color: Color,
-    pub align: Align
+    pub size:    u16,
+    pub value:   String,
+    pub width:   f32,
+    pub height:  f32,
+    pub color:   Color,
+    pub align:   Align,
+    pub off_y:   f32,
 }
 
 impl TextItem {
     pub fn new(value: &str, offset: (f32, f32), size: u16, color: Color, align: Align) -> Self {
         let dimentions = measure_text(value, Some(*COMFORTAA), size, 1.0);
+        println!("{}: {} {} {}", value, dimentions.width, dimentions.height, dimentions.offset_y);
         Self {
             offset,
             size,
             value: value.to_string(),
             width: dimentions.width,
-            height: dimentions.height + dimentions.offset_y,
+            height: dimentions.height,
             color,
             align,
+            off_y: dimentions.offset_y,
         }
     }
 
-    pub fn get_pos(&self) -> (f32, f32) {
-        let (x, y) = self.offset;
-        let (w, h) = (screen_width(), screen_height());
+    pub fn get_pos(&self, container: Option<(f32, f32, f32, f32)>) -> (f32, f32) {
+        let (x, y, w, h) = match container {
+            Some((x, y, w, h)) => (x + self.offset.0, y + self.offset.1, w, h),
+            None => (self.offset.0, self.offset.1, screen_width(), screen_height()),
+        };
+        let off = self.off_y;
         let (sw, sh) = (self.width, self.height);
         match self.align {
-            Align::Middle       => (x + (w - sw) / 2.0, y + (h + sh) / 2.0),
-            Align::TopLeft      => (x,                  y + 22.0 + sh),
-            Align::TopRight     => (x +  w - sw,        y + 22.0 + sh),
-            Align::TopCenter    => (x + (w - sw) / 2.0, y + 22.0 + sh),
-            Align::BottomLeft   => (x,                  y + h),
-            Align::BottomRight  => (x +  w - sw,        y + h),
-            Align::BottomCenter => (x + (w - sw) / 2.0, y + h),
+            Align::Middle       => (x + (w - sw) / 2.0, y + 22.0   + off - (sh + h) / 2.0),
+            Align::TopLeft      => (x,                  y + 22.0   + off),
+            Align::TopRight     => (x +  w - sw,        y + 22.0   + off),
+            Align::TopCenter    => (x + (w - sw) / 2.0, y + 22.0   + off),
+            Align::BottomLeft   => (x,                  y + h - sh + off),
+            Align::BottomRight  => (x +  w - sw,        y + h - sh + off),
+            Align::BottomCenter => (x + (w - sw) / 2.0, y + h - sh + off),
         }
+    }
+
+    pub fn size(&self) -> (f32, f32) {
+        (self.width, self.height)
     }
 
     pub fn get_params(&self) -> TextParams {
@@ -334,17 +344,23 @@ pub enum ContentItem {
 }
 
 impl ContentItem {
-    pub fn header(value: &str, offset: (f32, f32), level: usize, color: Color, align: Align) -> Result<Self, String> {
+    pub fn header(
+        value:   &str,
+        offset: (f32, f32),
+        level:   usize,
+        color:   Color,
+        align:   Align,
+    ) -> Result<Self, String> {
         match level {
-            1 => Ok(Self::H1(TextItem::new(value, offset, 48, color, align))),
-            2 => Ok(Self::H2(TextItem::new(value, offset, 36, color, align))),
-            3 => Ok(Self::H3(TextItem::new(value, offset, 24, color, align))),
+            1 => Ok(Self::H1(TextItem::new(value, offset, 60, color, align))),
+            2 => Ok(Self::H2(TextItem::new(value, offset, 48, color, align))),
+            3 => Ok(Self::H3(TextItem::new(value, offset, 36, color, align))),
             _ => Err("invalid header level".to_string()),
         }
     }
 
     pub fn text(value: &str, offset: (f32, f32), color: Color, align: Align) -> Self {
-        Self::Text(TextItem::new(value, offset, 12, color, align))
+        Self::Text(TextItem::new(value, offset, 24, color, align))
     }
 
     pub fn div(content: Content, offset: (f32, f32), align: Align) -> Self {
@@ -353,11 +369,21 @@ impl ContentItem {
 
     pub fn get_pos(&self) -> (f32, f32) {
         match self {
-            ContentItem::H1(t) => t.get_pos(),
-            ContentItem::H2(t) => t.get_pos(),
-            ContentItem::H3(t) => t.get_pos(),
-            ContentItem::Text(t) => t.get_pos(),
+            ContentItem::H1(t)   => t.get_pos(None),
+            ContentItem::H2(t)   => t.get_pos(None),
+            ContentItem::H3(t)   => t.get_pos(None),
+            ContentItem::Text(t) => t.get_pos(None),
             ContentItem::Div(pos, _, _) => *pos,
+        }
+    }
+
+    pub fn size(&self) -> (f32, f32) {
+        match self {
+            ContentItem::H1(t) => t.size(),
+            ContentItem::H2(t) => t.size(),
+            ContentItem::H3(t) => t.size(),
+            ContentItem::Text(t) => t.size(),
+            ContentItem::Div(_, _, _) => todo!(),
         }
     }
 }
@@ -374,13 +400,54 @@ pub struct OverlappingWindow {
 impl OverlappingWindow {
     pub fn instructions() -> Result<Self, String> {
         let mut content = Content::new();
+        let w = screen_width();
+        let hotkeys = vec![
+            ("Выделить", "ЛКМ"),
+            ("Вращать (XW, YW, ZW)", "ПКМ + <>, ПКМ + КОЛЕСО"),
+            ("Вращать (XZ, YZ)", "LSHIFT + ПКМ + <>"),
+            ("Экструдировать", "E"),
+            ("Соединить вершины", "F"),
+            ("Заполнить 2D поверхность", "SHIFT + F"),
+            ("Заполнить 3D поверхность", "CTRL + F"),
+            ("Копировать", "CTRL + C"),
+            ("Вставить", "CTRL + V"),
+            ("Дублировать", "CTRL + D"),
+            ("Удалить", "DEL"),
+        ];
         content.push(ContentItem::header(
             "Polytope 4D",
             (0.0, 0.0),
             1,
-            Color::new(0.0, 0.6, 1.0, 1.0),
-            Align::TopCenter)?
-        );
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        )?);
+        content.push(ContentItem::header(
+            "Горячие клавиши",
+            (0.0, 70.0),
+            3,
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        )?);
+        for i in 0..hotkeys.len() {
+            content.push(ContentItem::text(
+                hotkeys[i].0,
+                (-w / 2.0 - 23.448, 130.0 + 30.0 * i as f32),
+                Color::new(0.4, 0.4, 0.4, 1.0),
+                Align::TopRight,
+            ));
+            content.push(ContentItem::text(
+                " - ",
+                (0.0, 130.0 + 30.0 * i as f32),
+                Color::new(0.4, 0.4, 0.4, 1.0),
+                Align::TopCenter,
+            ));
+            content.push(ContentItem::text(
+                hotkeys[i].1,
+                (w / 2.0 + 23.448, 130.0 + 30.0 * i as f32),
+                Color::new(0.4, 0.4, 0.4, 1.0),
+                Align::TopLeft,
+            ));
+        }
         Ok(Self {
             panels: Panels::empty(),
             hidden: true,

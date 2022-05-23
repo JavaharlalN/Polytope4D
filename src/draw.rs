@@ -129,6 +129,15 @@ pub fn draw_overlapping_window(
     if !window.hidden {
         for item in &window.content {
             let (x, y) = item.get_pos();
+            let sw = screen_width();
+            let sh = screen_height();
+            // draw_rectangle(0.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top left
+            // draw_rectangle(sw / 2.0 - 150.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top center
+            // draw_rectangle(sw - 300.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top right
+            // draw_rectangle(sw / 2.0 - 150.0, sh / 2.0 + 22.0 - 25.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // middle
+            // draw_rectangle(0.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom left
+            // draw_rectangle(sw / 2.0 - 150.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom center
+            // draw_rectangle(sw - 300.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom right
             match item {
                 ContentItem::H1(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
                 ContentItem::H2(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },

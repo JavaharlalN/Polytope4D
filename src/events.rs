@@ -14,7 +14,7 @@ pub fn catch_mouse_event(
     xy_last:    (f32, f32),
     motion_axes: &mut MotionAxes,
     angle:       &mut Angle,
-    windows:      &WindowGroup,
+    windows:     &mut WindowGroup,
 ) {
     if is_mouse_button_down(MouseButton::Left) {
         lmb_down_event(&mut ms.is_lmb_down, &mut ms.lmb_click_timer, buttons);
@@ -29,7 +29,7 @@ pub fn catch_mouse_event(
                 windows,
             );
         }
-		lmb_up_event(buttons, objects);
+		lmb_up_event(buttons, objects, windows);
         ms.is_lmb_down = false;
     } else if is_mouse_button_down(MouseButton::Right) {
         rmb_down_event(&mut ms.is_rmb_down, &mut ms.rmb_click_timer, motion_axes);
@@ -43,21 +43,36 @@ pub fn catch_mouse_event(
 }
 
 // TODO: merge to mouse_up_event
-pub fn lmb_up_event(buttons: &mut Vec<Button>, objects: &mut Vec<Object>) {
+pub fn lmb_up_event(
+    buttons: &mut Vec<Button>,
+    objects: &mut Vec<Object>,
+    windows: &mut WindowGroup,
+) {
     for btn in buttons {
         if btn.is_active() && btn.is_click_button() {
             btn.set_active(false);
             match btn.get_type() {
-                ButtonType::Export =>  { save(objects); },
+                ButtonType::Export =>  save(objects),
                 ButtonType::Import => { match open_4dp() {
                     Ok(obj) => {
                         objects.clear();
                         objects.push(obj);
                     }, Err(e) => println!("{}", e),
                 } },
+                ButtonType::Info => instructions_event(windows),
                 _ => {},
             }
         }
+    }
+}
+
+pub fn instructions_event(windows: &mut WindowGroup) {
+    if windows.instructions.hidden {
+        windows.main.hide();
+        windows.instructions.show();
+    } else {
+        windows.main.show();
+        windows.instructions.hide();
     }
 }
 

@@ -250,8 +250,6 @@ async fn main() {
         ];
         main.buttons[0].set_active(true);
     }
-    windows.main.hide();
-    windows.instructions.show();
 
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
     let mut cursor = Cursor::new(mouse_position());
@@ -285,7 +283,7 @@ async fn main() {
             (x_last, y_last),
             &mut motion_axes,
             &mut angle,
-            &windows,
+            &mut windows,
         );
         catch_keyboard_event(&mut objects, &mut clipboard, &mut motion_axes);
         update_buttons(&mut windows);
