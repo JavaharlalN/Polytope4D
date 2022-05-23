@@ -254,7 +254,7 @@ async fn main() {
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
     let mut cursor = Cursor::new(mouse_position());
     let mut last_size = (screen_width(), screen_height());
-    let mut objects = vec![Object::tesseract()];
+    let mut objects = vec![Object::sphere3d()];
     let mut angle = Angle::new();
     let camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
     let mut axes = Axes::new(100.0, windows.main.config().y - 100.0);

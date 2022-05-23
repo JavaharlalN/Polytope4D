@@ -152,6 +152,18 @@ impl Vec4f {
         self.set_proj((x, y));
         self.with_proj((x, y))
     }
+
+    pub fn xy(&self)   -> (f32, f32          ) { return (self.x, self.y                ) }
+    pub fn xz(&self)   -> (f32, f32          ) { return (self.x, self.z                ) }
+    pub fn xw(&self)   -> (f32, f32          ) { return (self.x, self.w                ) }
+    pub fn yz(&self)   -> (f32, f32          ) { return (self.y, self.z                ) }
+    pub fn yw(&self)   -> (f32, f32          ) { return (self.y, self.w                ) }
+    pub fn zw(&self)   -> (f32, f32          ) { return (self.z, self.w                ) }
+    pub fn xyz(&self)  -> (f32, f32, f32     ) { return (self.x, self.y, self.z        ) }
+    pub fn xyw(&self)  -> (f32, f32, f32     ) { return (self.x, self.y, self.w        ) }
+    pub fn xzw(&self)  -> (f32, f32, f32     ) { return (self.x, self.z, self.w        ) }
+    pub fn yzw(&self)  -> (f32, f32, f32     ) { return (self.y, self.z, self.w        ) }
+    pub fn xyzw(&self) -> (f32, f32, f32, f32) { return (self.x, self.y, self.z, self.w) }
 }
 
 impl Add for Vec4f {

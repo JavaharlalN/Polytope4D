@@ -1,5 +1,6 @@
 use crate::Edge;
 use super::Vec4f;
+use std::f32::consts::PI;
 use std::ops::Add;
 use std::ops::AddAssign;
 use crate::angle::Angle;
@@ -179,6 +180,56 @@ impl Object {
             faces: vec![],
             cells: vec![],
             name: Some("Tessteract".to_string()),
+        }
+    }
+
+    pub fn sphere3d() -> Self {
+        let mut vertices = vec![];
+        let rs = 1.5; // start radius
+        let n = 11;
+        for xy in 0..2 * n {
+            let a = PI / n as f32 * xy as f32;
+            let (x, y) = Vec4f::new(a.cos() * rs, a.sin() * rs, 0.0, 0.0).xy();
+            let r = x.abs();
+            for xz in 0..2 * n {
+                let b = PI / n as f32 * xz as f32;
+                let v = Vec4f::new(b.cos() * r, y, b.sin() * r, 0.0);
+                vertices.push(v);
+            }
+        }
+        Self {
+            vertices,
+            edges: vec![],
+            faces: vec![],
+            cells: vec![],
+            name: Some("Hypersphere".to_string()),
+        }
+    }
+
+    pub fn sphere4d() -> Self {
+        let mut vertices = vec![];
+        let n = 5;
+        for xy in 0..2 * n {
+            let a = PI / n as f32 * xy as f32;
+            let (x, y) = Vec4f::new(a.cos(), a.sin(), 0.0, 0.0).xy();
+            let r = x.abs();
+            for xz in 0..2 * n {
+                let b = PI / n as f32 * xz as f32;
+                let (x, z) = Vec4f::new(b.cos() * r, y, b.sin() * r, 0.0).xz();
+                let r = x.abs();
+                for xw in 0..2 * n {
+                    let g = PI / n as f32 * xw as f32;
+                    let v = Vec4f::new(g.cos() * r, y, z, g.sin() * r);
+                    vertices.push(v);
+                }
+            }
+        }
+        Self {
+            vertices,
+            edges: vec![],
+            faces: vec![],
+            cells: vec![],
+            name: Some("Hypersphere".to_string()),
         }
     }
 }
