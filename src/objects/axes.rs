@@ -66,6 +66,10 @@ impl MotionAxes {
     }
 
     pub fn ungrab(&mut self) {
+        self.x.selected = false;
+        self.y.selected = false;
+        self.z.selected = false;
+        self.w.selected = false;
         self.grab_start = None;
         self.grab_now   = None;
         self.grabbed    = false;
