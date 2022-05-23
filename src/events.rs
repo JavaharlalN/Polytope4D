@@ -230,7 +230,6 @@ pub fn mouse_up_event(
     *is_mb_down = false;
     motion_axes.ungrab();
     motion_axes.pos = get_center(objects);
-    motion_axes.grab_start = None;
 }
 
 pub fn drag_event(
