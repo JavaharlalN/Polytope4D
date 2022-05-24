@@ -40,6 +40,7 @@ impl CheckButton {
 
 #[derive(Debug, Clone)]
 pub enum ButtonType {
+    CreateTesseract,
     SelectionType,
     Settings,
     Import,
@@ -61,11 +62,15 @@ pub struct ClickButton {
 }
 
 impl ClickButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: Align, btype: ButtonType) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: Option<&str>, align: Align, btype: ButtonType) -> Self {
+        let texture = match sprite {
+            Some(path) => Texture2D::from_file_with_format(std::fs::read(path).unwrap().as_slice(), None),
+            None => Texture2D::empty(),
+        };
         Self {
             x, y,
             w, h,
-            texture: Texture2D::from_file_with_format(std::fs::read(sprite).unwrap().as_slice(), None),
+            texture,
             hover:   false,
             hold:    false,
             align,

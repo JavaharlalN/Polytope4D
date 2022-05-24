@@ -231,10 +231,10 @@ fn update_buttons(windows: &mut WindowGroup) {
 async fn main() {
     show_mouse(false);
     let mut buttons = vec![
-        Button::Click(ClickButton::new( 0.0, 0.0, 20.0, 20.0, "sprites/logo.png",     Align::TopLeft,  ButtonType::Info)),
-        Button::Click(ClickButton::new(20.0, 0.0, 20.0, 20.0, "sprites/settings.png", Align::TopLeft,  ButtonType::Settings)),
-        Button::Click(ClickButton::new(40.0, 0.0, 20.0, 20.0, "sprites/import.png",   Align::TopLeft,  ButtonType::Import)),
-        Button::Click(ClickButton::new(60.0, 0.0, 20.0, 20.0, "sprites/save.png",     Align::TopLeft,  ButtonType::Export)),
+        Button::Click(ClickButton::new( 0.0, 0.0, 20.0, 20.0, Some("sprites/logo.png"),     Align::TopLeft,  ButtonType::Info)),
+        Button::Click(ClickButton::new(20.0, 0.0, 20.0, 20.0, Some("sprites/settings.png"), Align::TopLeft,  ButtonType::Settings)),
+        Button::Click(ClickButton::new(40.0, 0.0, 20.0, 20.0, Some("sprites/import.png"),   Align::TopLeft,  ButtonType::Import)),
+        Button::Click(ClickButton::new(60.0, 0.0, 20.0, 20.0, Some("sprites/save.png"),     Align::TopLeft,  ButtonType::Export)),
     ];
     let mut windows = WindowGroup {
         main:         Window::Main(MainWindow::new(screen_width(), screen_height())),

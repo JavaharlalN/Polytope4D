@@ -4,10 +4,13 @@ use crate::COMFORTAA_BOLD;
 use crate::COMFORTAA_LIGHT;
 use crate::button::Align;
 use crate::button::Button;
+use crate::button::ButtonType;
+use crate::button::ClickButton;
 use crate::objects::Object;
 use macroquad::prelude::Color;
 use macroquad::prelude::Font;
 use macroquad::prelude::TextParams;
+use macroquad::prelude::Texture2D;
 use macroquad::prelude::measure_text;
 use macroquad::prelude::screen_width;
 use macroquad::prelude::screen_height;
@@ -24,6 +27,7 @@ pub enum HintAlign {
 pub enum Window {
     Main(MainWindow),
     Scene(SceneWindow),
+    Start(StartWindow),
 }
 
 impl Window {
@@ -31,6 +35,16 @@ impl Window {
         match self {
             Window::Main(w) => w.config.clone(),
             Window::Scene(w) => w.config.clone(),
+            Window::Start(_) => {
+                Parameters {
+                    x: 0.0,
+                    y: 22.0,
+                    w: screen_width(),
+                    h: screen_height(),
+                    grabbed: false,
+                    name: "Start".to_string(),
+                }
+            }
         }
     }
 
@@ -38,6 +52,7 @@ impl Window {
         match self {
             Window::Main(w) => (w.config.x, w.config.y),
             Window::Scene(w) => (w.config.x, w.config.y),
+            Window::Start(_) => (0.0, 0.0),
         }
     }
 
@@ -45,6 +60,7 @@ impl Window {
         match self {
             Window::Main(w) => (w.config.w, w.config.h),
             Window::Scene(w) => (w.config.w, w.config.h),
+            Window::Start(_) => (screen_width(), screen_height()),
         }
     }
 
@@ -52,6 +68,7 @@ impl Window {
         match self {
             Window::Main(win) => { win.config.w = w; win.config.h = h },
             Window::Scene(win) => { win.config.w = w; win.config.h = h },
+            Window::Start(_) => {},
         }
     }
 
@@ -59,6 +76,7 @@ impl Window {
         match self {
             Window::Main(win) => win.hidden,
             Window::Scene(win) => win.hidden,
+            Window::Start(win) => win.hidden,
         }
     }
 
@@ -66,6 +84,7 @@ impl Window {
         match self {
             Window::Main(win) => { win.hidden = !visible },
             Window::Scene(win) => { win.hidden = !visible },
+            Window::Start(win) => { win.hidden = !visible },
         }
     }
 
@@ -73,6 +92,7 @@ impl Window {
         match self {
             Window::Main(win) => Some(&win.buttons),
             Window::Scene(_) => None,
+            Window::Start(win) => Some(&win.buttons),
         }
     }
 
@@ -80,6 +100,7 @@ impl Window {
         match self {
             Window::Main(win) => Some(&mut win.buttons),
             Window::Scene(_) => None,
+            Window::Start(win) => Some(&mut win.buttons),
         }
     }
 
@@ -87,11 +108,17 @@ impl Window {
         match self {
             Window::Main(win) => {
                 for (i, b) in win.buttons.iter().enumerate() {
-                    if b.is_hover() { return Some(i); }
+                    if b.is_hover() { return Some(i) }
                 }
-                return None;
+                return None
             },
             Window::Scene(_) => None,
+            Window::Start(win) => {
+                for(i, b) in win.buttons.iter().enumerate() {
+                    if b.is_hover() { return Some(i) }
+                }
+                return None
+            }
         }
     }
 
@@ -99,6 +126,7 @@ impl Window {
         match self {
             Window::Main(win) => win.buttons.len(),
             Window::Scene(_) => 0,
+            Window::Start(win) => win.buttons.len(),
         }
     }
 
@@ -165,19 +193,9 @@ pub struct SceneWindow {
 pub struct WindowGroup {
     pub main:         Window,
     pub scene:        Window,
+    // pub start:        Window,
     // pub settings:     OverlappingWindow,
     pub instructions: OverlappingWindow,
-}
-
-impl WindowGroup {
-    pub fn copy(self) -> WindowGroup {
-        WindowGroup {
-            main:         self.main,
-            scene:        self.scene,
-            // settings:     self.settings,
-            instructions: self.instructions
-        }
-    }
 }
 
 impl MainWindow {
@@ -457,5 +475,38 @@ impl OverlappingWindow {
 
     pub fn show(&mut self) {
         self.hidden = false;
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct StartWindow {
+    pub buttons: Vec<Button>,
+    pub hidden: bool,
+    pub header: TextItem,
+}
+
+impl StartWindow {
+    pub fn new() -> Self {
+        let mut buttons = vec![];
+        buttons.push(Button::Click(ClickButton::new(
+            -screen_width() / 2.0,
+            130.0,
+            100.0,
+            100.0,
+            None,
+            Align::TopRight,
+            ButtonType::CreateTesseract,
+        )));
+        Self {
+            buttons,
+            hidden: false,
+            header: TextItem::new(
+                "Polytope 4D",
+                (0.0, 30.0),
+                60,
+                Color::new(0.4, 0.4, 0.4, 1.0),
+                Align::TopCenter,
+            )
+        }
     }
 }
