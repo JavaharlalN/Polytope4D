@@ -1,5 +1,3 @@
-use macroquad::prelude::draw_rectangle_lines;
-
 use super::*;
 
 pub fn draw_cursor(cursor: &Cursor) {
@@ -139,22 +137,23 @@ pub fn draw_border(x: f32, y: f32, w: f32, h: f32) {
 }
 
 pub fn draw_start_window(
-    window:       &Window,
+    windows:      &WindowGroup,
     cursor:       &Cursor,
     cursor_drawn: &mut bool,
 ) {
-    if window.is_hidden() { return }
-    let (x, y, w, h) = window.as_tuple();
+    if windows.start.is_hidden() { return }
+    if !windows.instructions.is_hidden() { return }
+    let (x, y, w, h) = windows.start.as_tuple();
     draw_line(x, y + 16.0, x + w, y + 16.0, 2.0, Color::new(0.3, 0.3, 0.3, 0.5));
     draw_border(x, y, w, h);
     if !*cursor_drawn {
         draw_cursor(cursor);
         *cursor_drawn = true;
     }
-    if let Window::Start(start_window) = window {
+    if let Window::Start(start_window) = &windows.start {
         draw_content(&start_window.content);
     }
-    if let Some(buttons) = window.buttons() {
+    if let Some(buttons) = windows.start.buttons() {
         for button in buttons {
             draw_button(button, Some((x, y, w, h)));
         }
@@ -184,11 +183,15 @@ pub fn draw_content(content: &Content) {
 }
 
 pub fn draw_overlapping_window(
-    window: &OverlappingWindow,
-    cursor: &Cursor
+    window:       &OverlappingWindow,
+    cursor:       &Cursor,
+    cursor_drawn: &mut bool,
 ) {
     if !window.hidden { draw_content(&window.content); }
-    draw_cursor(cursor);
+    if !*cursor_drawn {
+        draw_cursor(cursor);
+        *cursor_drawn = true;
+    }
 }
 
 pub fn draw_windows(
@@ -199,8 +202,7 @@ pub fn draw_windows(
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
 ) {
-    let mut cursor_drawn = true;
-    draw_overlapping_window(&windows.instructions, cursor);
+    let mut cursor_drawn = false;
     draw_main_window(
         &windows.main,
         objects,
@@ -210,10 +212,11 @@ pub fn draw_windows(
         &mut cursor_drawn,
     );
     draw_start_window(
-        &windows.start,
+        windows,
         cursor,
         &mut cursor_drawn,
     );
+    draw_overlapping_window(&windows.instructions, cursor, &mut cursor_drawn);
     for button in buttons {
         draw_button( button, None);
     }
@@ -253,10 +256,18 @@ pub fn draw_cursor_overlay(cursor: Cursor) {
         cursor.real.r,
         Color::new(0.3, 0.3, 0.3, 0.4),
     );
+    draw_rectangle(
+        cursor.conf.x,
+        cursor.conf.y,
+        cursor.conf.w,
+        cursor.conf.h,
+        Color::new(0.8, 0.8, 0.8, 0.1),
+    );
 }
 
 pub fn draw_button(button: &Button, window: Option<(f32, f32, f32, f32)>) {
-    let k = if button.is_hover() { 0.6 } else { 0.5 };
+    // let k = if button.is_hover() { 0.6 } else { 0.5 };
+    let k = 0.5;
     let (x, y) = button.get_pos(window);
     let (w, h) = button.size();
     draw_rectangle(
@@ -271,8 +282,8 @@ pub fn draw_button(button: &Button, window: Option<(f32, f32, f32, f32)>) {
     );
     if button.is_active() {
         draw_line(
-            x,     h - 1.0,
-            x + w, h - 1.0,
+            x,     y + h - 1.0,
+            x + w, y + h - 1.0,
             2.0,
             Color::new(0.0, 0.53333333, 0.93333333, 1.0),
         );
