@@ -16,7 +16,7 @@ pub fn catch_mouse_event(
     windows:     &mut WindowGroup,
 ) {
     if is_mouse_button_down(MouseButton::Left) {
-        lmb_down_event(&mut ms.is_lmb_down, &mut ms.lmb_click_timer, buttons);
+        lmb_down_event(&mut ms.is_lmb_down, &mut ms.lmb_click_timer, buttons, windows);
     } else if ms.is_lmb_down { // lmb up event
         if ms.lmb_click_timer.elapsed().as_millis() < CLICK_TIMEOUT { // lmb click event
             lmb_click_event(
@@ -61,6 +61,40 @@ pub fn lmb_up_event(
             }
         }
     }
+    let mut hide_start_window = false;
+    if let Some(btns) = windows.start.buttons_mut() {
+        for btn in btns {
+            if !btn.is_active() { continue; }
+            btn.set_active(false);
+            match btn.get_type() {
+                ButtonType::CreateTesseract => {
+                    objects.clear();
+                    objects.push(Object::tesseract());
+                    windows.main.show();
+                    hide_start_window = true;
+                    windows.instructions.hide();
+                },
+                ButtonType::CreateSphere3D => {
+                    objects.clear();
+                    objects.push(Object::sphere3d());
+                    windows.main.show();
+                    hide_start_window = true;
+                    windows.instructions.hide();
+                },
+                ButtonType::Close => {
+                    let mut object = Object::empty();
+                    object.vertices.push(Vec4f::new0());
+                    objects.clear();
+                    objects.push(object);
+                    windows.main.show();
+                    hide_start_window = true;
+                    windows.instructions.hide();
+                },
+                _ => {},
+            }
+        }
+    }
+    if hide_start_window { windows.start.hide(); }
 }
 
 pub fn instructions_event(windows: &mut WindowGroup) {
@@ -68,7 +102,7 @@ pub fn instructions_event(windows: &mut WindowGroup) {
         windows.main.hide();
         windows.instructions.show();
     } else {
-        windows.main.show();
+        if windows.start.is_hidden() { windows.main.show(); }
         windows.instructions.hide();
     }
 }
@@ -198,6 +232,7 @@ pub fn lmb_down_event(
     is_lmb_down: &mut bool,
     timer:       &mut Instant,
     buttons:     &mut Vec<Button>,
+    windows:     &mut WindowGroup,
 ) {
     if !*is_lmb_down {
         *is_lmb_down = true;
@@ -206,6 +241,13 @@ pub fn lmb_down_event(
     for btn in buttons {
         if btn.is_hover() && btn.is_click_button() {
             btn.set_active(true);
+        }
+    }
+    if let Some(btns) = windows.start.buttons_mut() {
+        for btn in btns {
+            if btn.is_hover() && btn.is_click_button() {
+                btn.set_active(true);
+            }
         }
     }
 }
@@ -275,53 +317,56 @@ pub fn lmb_click_event(
     windows:     &mut WindowGroup,
 ) {
     let hover = windows.main.hover_i();
-    let st_buttons = windows.main.buttons_mut().unwrap(); // selection_type buttons
-    if let Some(hover_i) = hover {
-        if  hover_i < st_buttons.len() {
-            if is_key_down(KeyCode::LeftShift) {
-                if get_enabled_buttons_count(st_buttons) > 1 {
-                    let h = st_buttons.get(hover_i).unwrap().is_active();
-                    st_buttons.get_mut(hover_i).unwrap().set_active(!h);
-                } else if !st_buttons[hover_i].is_active() {
+
+    if !windows.main.is_hidden() {
+        let st_buttons = windows.main.buttons_mut().unwrap(); // selection_type buttons
+        if let Some(hover_i) = hover {
+            if  hover_i < st_buttons.len() {
+                if is_key_down(KeyCode::LeftShift) {
+                    if get_enabled_buttons_count(st_buttons) > 1 {
+                        let h = st_buttons.get(hover_i).unwrap().is_active();
+                        st_buttons.get_mut(hover_i).unwrap().set_active(!h);
+                    } else if !st_buttons[hover_i].is_active() {
+                        st_buttons[hover_i].set_active(true);
+                    }
+                } else {
+                    for b in st_buttons.iter_mut() {
+                        b.set_active(false);
+                    }
                     st_buttons[hover_i].set_active(true);
                 }
-            } else {
-                for b in st_buttons.iter_mut() {
-                    b.set_active(false);
-                }
-                st_buttons[hover_i].set_active(true);
             }
         }
-    }
-    for obj in objects.iter_mut() {
-        if st_buttons[0].is_active() {
-            if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
-                let v = obj.vertices.get_mut(index).unwrap();
-                if is_key_down(KeyCode::LeftShift) {
-                    if v.selected {
-                        obj.deselect_vertice(index);
+        for obj in objects.iter_mut() {
+            if st_buttons[0].is_active() {
+                if let Some(index) = find_closest_vertice(xy.0, xy.1, &obj.vertices) {
+                    let v = obj.vertices.get_mut(index).unwrap();
+                    if is_key_down(KeyCode::LeftShift) {
+                        if v.selected {
+                            obj.deselect_vertice(index);
+                        } else {
+                            obj.select_vertice(index);
+                        }
                     } else {
-                        obj.select_vertice(index);
+                        clear_selection(obj);
+                        obj.vertices[index].selected = true;
                     }
-                } else {
-                    clear_selection(obj);
-                    obj.vertices[index].selected = true;
+                    break;
                 }
-                break;
             }
-        }
-        if st_buttons[1].is_active() {
-            if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
-                let e = obj.edges.get_mut(index).unwrap();
-                if is_key_down(KeyCode::LeftShift) {
-                    if e.selected {
-                        obj.deselect_edge(index);
+            if st_buttons[1].is_active() {
+                if let Some(index) = find_closest_edge(xy.0, xy.1, &obj) {
+                    let e = obj.edges.get_mut(index).unwrap();
+                    if is_key_down(KeyCode::LeftShift) {
+                        if e.selected {
+                            obj.deselect_edge(index);
+                        } else {
+                            obj.select_edge(index);
+                        }
                     } else {
+                        clear_selection(obj);
                         obj.select_edge(index);
                     }
-                } else {
-                    clear_selection(obj);
-                    obj.select_edge(index);
                 }
             }
         }
