@@ -85,6 +85,7 @@ impl Window {
     }
 
     pub fn buttons(&self) -> Option<&Vec<Button>> {
+        if self.is_hidden() { return None }
         match self {
             Window::Main(win) => Some(&win.buttons),
             Window::Scene(_) => None,
@@ -93,6 +94,7 @@ impl Window {
     }
 
     pub fn buttons_mut(&mut self) -> Option<&mut Vec<Button>> {
+        if self.is_hidden() { return None }
         match self {
             Window::Main(win) => Some(&mut win.buttons),
             Window::Scene(_) => None,
@@ -101,6 +103,7 @@ impl Window {
     }
 
     pub fn hover_i(&self) -> Option<usize> {
+        if self.is_hidden() { return None }
         match self {
             Window::Main(win) => {
                 for (i, b) in win.buttons.iter().enumerate() {
@@ -319,7 +322,7 @@ impl TextItem {
         let off = self.off_y;
         let (sw, sh) = (self.width, self.height);
         match self.align {
-            Align::Middle       => (x + (w - sw) / 2.0, y + 22.0   + off - (sh + h) / 2.0),
+            Align::Middle       => (x + (w - sw) / 2.0, y + 22.0   + off + (sh + h) / 2.0),
             Align::TopLeft      => (x,                  y + 22.0   + off                 ),
             Align::TopRight     => (x +  w - sw,        y + 22.0   + off                 ),
             Align::TopCenter    => (x + (w - sw) / 2.0, y + 22.0   + off                 ),
@@ -469,6 +472,10 @@ impl OverlappingWindow {
         self.hidden = true;
     }
 
+    pub fn is_hidden(&self) -> bool {
+        self.hidden
+    }
+
     pub fn show(&mut self) {
         self.hidden = false;
     }
@@ -486,8 +493,8 @@ impl StartWindow {
     pub fn new(w: f32, h: f32) -> Result<Self, String> {
         let mut buttons = vec![];
         buttons.push(Button::Click(ClickButton::new(
-            -200.0,
-            -100.0,
+            -160.0,
+            -80.0,
             100.0,
             100.0,
             Some("sprites/tesseract.png"),
@@ -495,8 +502,8 @@ impl StartWindow {
             ButtonType::CreateTesseract,
         )));
         buttons.push(Button::Click(ClickButton::new(
-            100.0,
-            -100.0,
+            60.0,
+            -80.0,
             100.0,
             100.0,
             Some("sprites/sphere3d.png"),
@@ -511,6 +518,15 @@ impl StartWindow {
             Some("sprites/exit.png"),
             Align::TopRight,
             ButtonType::Close,
+        )));
+        buttons.push(Button::Click(ClickButton::new(
+            -35.0,
+            135.0,
+            70.0,
+            70.0,
+            Some("sprites/import_obj.png"),
+            Align::Middle,
+            ButtonType::CreateSphere3D,
         )));
         let mut content = Content::new();
         content.push(ContentItem::header(
@@ -529,16 +545,29 @@ impl StartWindow {
         )?);
         content.push(ContentItem::text(
             "Тессеракт",
-            (-150.0, h * 0.5),
+            (-110.0, h * 0.5 + 5.0),
             Color::new(0.4, 0.4, 0.4, 1.0),
             Align::TopCenter,
         ));
         content.push(ContentItem::text(
             "3D сфера",
-            (150.0, h * 0.5),
+            (110.0, h * 0.5 + 5.0),
             Color::new(0.4, 0.4, 0.4, 1.0),
             Align::TopCenter,
         ));
+        content.push(ContentItem::text(
+            ".OBJ",
+            (0.0, -h * 0.1 - 45.0),
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::BottomCenter,
+        ));
+        content.push(ContentItem::header(
+            "Открыть",
+            (0.0, h / 2.0 + 60.0),
+            3,
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        )?);
         Ok(Self {
             config: Parameters {
                 x: w * 0.1,
