@@ -41,10 +41,12 @@ impl CheckButton {
 #[derive(Debug, Clone)]
 pub enum ButtonType {
     CreateTesseract,
+    CreateSphere3D,
     SelectionType,
     Settings,
     Import,
     Export,
+    Close,
     Info,
 }
 
