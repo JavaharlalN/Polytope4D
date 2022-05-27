@@ -1,16 +1,12 @@
 use super::ObjectField;
 use crate::COMFORTAA;
-use crate::COMFORTAA_BOLD;
-use crate::COMFORTAA_LIGHT;
 use crate::button::Align;
 use crate::button::Button;
+use crate::objects::Object;
 use crate::button::ButtonType;
 use crate::button::ClickButton;
-use crate::objects::Object;
 use macroquad::prelude::Color;
-use macroquad::prelude::Font;
 use macroquad::prelude::TextParams;
-use macroquad::prelude::Texture2D;
 use macroquad::prelude::measure_text;
 use macroquad::prelude::screen_width;
 use macroquad::prelude::screen_height;
@@ -52,7 +48,7 @@ impl Window {
         match self {
             Window::Main(w) => (w.config.x, w.config.y),
             Window::Scene(w) => (w.config.x, w.config.y),
-            Window::Start(_) => (0.0, 0.0),
+            Window::Start(w) => (w.config.x, w.config.y),
         }
     }
 
@@ -60,7 +56,7 @@ impl Window {
         match self {
             Window::Main(w) => (w.config.w, w.config.h),
             Window::Scene(w) => (w.config.w, w.config.h),
-            Window::Start(_) => (screen_width(), screen_height()),
+            Window::Start(w) => (w.config.w, w.config.h),
         }
     }
 
@@ -68,7 +64,7 @@ impl Window {
         match self {
             Window::Main(win) => { win.config.w = w; win.config.h = h },
             Window::Scene(win) => { win.config.w = w; win.config.h = h },
-            Window::Start(_) => {},
+            Window::Start(win) => { win.config.w = w; win.config.h = h },
         }
     }
 
@@ -193,7 +189,7 @@ pub struct SceneWindow {
 pub struct WindowGroup {
     pub main:         Window,
     pub scene:        Window,
-    // pub start:        Window,
+    pub start:        Window,
     // pub settings:     OverlappingWindow,
     pub instructions: OverlappingWindow,
 }
@@ -324,12 +320,12 @@ impl TextItem {
         let (sw, sh) = (self.width, self.height);
         match self.align {
             Align::Middle       => (x + (w - sw) / 2.0, y + 22.0   + off - (sh + h) / 2.0),
-            Align::TopLeft      => (x,                  y + 22.0   + off),
-            Align::TopRight     => (x +  w - sw,        y + 22.0   + off),
-            Align::TopCenter    => (x + (w - sw) / 2.0, y + 22.0   + off),
-            Align::BottomLeft   => (x,                  y + h - sh + off),
-            Align::BottomRight  => (x +  w - sw,        y + h - sh + off),
-            Align::BottomCenter => (x + (w - sw) / 2.0, y + h - sh + off),
+            Align::TopLeft      => (x,                  y + 22.0   + off                 ),
+            Align::TopRight     => (x +  w - sw,        y + 22.0   + off                 ),
+            Align::TopCenter    => (x + (w - sw) / 2.0, y + 22.0   + off                 ),
+            Align::BottomLeft   => (x,                  y + h - sh + off                 ),
+            Align::BottomRight  => (x +  w - sw,        y + h - sh + off                 ),
+            Align::BottomCenter => (x + (w - sw) / 2.0, y + h - sh + off                 ),
         }
     }
 
@@ -480,33 +476,81 @@ impl OverlappingWindow {
 
 #[derive(Debug, Clone)]
 pub struct StartWindow {
+    pub config: Parameters,
     pub buttons: Vec<Button>,
     pub hidden: bool,
-    pub header: TextItem,
+    pub content: Content,
 }
 
 impl StartWindow {
-    pub fn new() -> Self {
+    pub fn new(w: f32, h: f32) -> Result<Self, String> {
         let mut buttons = vec![];
         buttons.push(Button::Click(ClickButton::new(
-            -screen_width() / 2.0,
-            130.0,
+            -200.0,
+            -100.0,
             100.0,
             100.0,
-            None,
-            Align::TopRight,
+            Some("sprites/tesseract.png"),
+            Align::Middle,
             ButtonType::CreateTesseract,
         )));
-        Self {
+        buttons.push(Button::Click(ClickButton::new(
+            100.0,
+            -100.0,
+            100.0,
+            100.0,
+            Some("sprites/sphere3d.png"),
+            Align::Middle,
+            ButtonType::CreateSphere3D,
+        )));
+        buttons.push(Button::Click(ClickButton::new(
+            -15.0,
+            0.0,
+            15.0,
+            15.0,
+            Some("sprites/exit.png"),
+            Align::TopRight,
+            ButtonType::Close,
+        )));
+        let mut content = Content::new();
+        content.push(ContentItem::header(
+            "Добро пожаловать",
+            (0.0, h * 0.1 + 30.0),
+            1,
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        )?);
+        content.push(ContentItem::header(
+            "Создать",
+            (0.0, h * 0.1 + 120.0),
+            3,
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        )?);
+        content.push(ContentItem::text(
+            "Тессеракт",
+            (-150.0, h * 0.5),
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        ));
+        content.push(ContentItem::text(
+            "3D сфера",
+            (150.0, h * 0.5),
+            Color::new(0.4, 0.4, 0.4, 1.0),
+            Align::TopCenter,
+        ));
+        Ok(Self {
+            config: Parameters {
+                x: w * 0.1,
+                y: h * 0.1,
+                w: w * 0.8,
+                h: h * 0.8,
+                grabbed: false,
+                name: "Welcome".to_string(),
+            },
             buttons,
             hidden: false,
-            header: TextItem::new(
-                "Polytope 4D",
-                (0.0, 30.0),
-                60,
-                Color::new(0.4, 0.4, 0.4, 1.0),
-                Align::TopCenter,
-            )
-        }
+            content,
+        })
     }
 }

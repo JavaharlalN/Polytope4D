@@ -122,6 +122,7 @@ pub fn clear_hover(buttons: &mut Vec<Button>, windows: &mut WindowGroup) {
     }
     windows.main.clear_hover();
     windows.scene.clear_hover();
+    windows.start.clear_hover();
 }
 
 pub fn catch_hover_for_window(
@@ -136,12 +137,12 @@ pub fn catch_hover_for_window(
             for button in buttons {
                 let (x, y) = button.get_pos(Some(geometry));
                 let (w, h) = button.size();
-                if cursor.intersect_with_button(button, Some(geometry)) {
-                    *hover = true;
+                if cursor.intersect_with_button(button, Some(geometry), None) {
                     if !cursor.rect || !cursor.is_pos_set(x, y) {
                         cursor.set(x, y, w, h + 2.0);
                     }
                     button.set_hover(true);
+                    *hover = true;
                     return true;
                 }
             }
@@ -165,6 +166,7 @@ pub fn catch_hover(
         if cursor.intersect_with_button(
             button,
             None,
+            None,
         ) {
             *hover = true;
             if !cursor.rect || !cursor.is_pos_set(x, y) {
@@ -174,7 +176,8 @@ pub fn catch_hover(
             return;
         }
     }
-    catch_hover_for_window(cursor, hover, &mut windows.main);
+    if catch_hover_for_window(cursor, hover, &mut windows.main) { return }
+    if catch_hover_for_window(cursor, hover, &mut windows.start) { return }
 }
 
 pub struct MouseState {
@@ -220,10 +223,24 @@ fn update_buttons(windows: &mut WindowGroup) {
                         button.set_hover(i == hover_i);
                     }
                 },
-                None => (),
+                None => {},
             }
         }
-        None => (),
+        None => {},
+    }
+    let hover = windows.start.hover_i();
+    match windows.start.buttons_mut() {
+        Some(buttons) => {
+            match hover {
+                Some(hover_i) => {
+                    for (i, button) in buttons.iter_mut().enumerate() {
+                        button.set_hover(i == hover_i);
+                    }
+                }
+                None => {},
+            }
+        },
+        None => {},
     }
 }
 
@@ -239,6 +256,7 @@ async fn main() {
     let mut windows = WindowGroup {
         main:         Window::Main(MainWindow::new(screen_width(), screen_height())),
         scene:        Window::Scene(SceneWindow::new(screen_width(), screen_height())),
+        start:        Window::Start(StartWindow::new(screen_width(), screen_height()).unwrap()),
         instructions: OverlappingWindow::instructions().unwrap(),
     };
     if let Window::Main(main) = &mut windows.main {
@@ -250,11 +268,12 @@ async fn main() {
         ];
         main.buttons[0].set_active(true);
     }
-
+    windows.start.show();
+    windows.main.hide();
+    let mut objects = vec![Object::tesseract()];
     let mut mouse_state = MouseState::new(mouse_position(), mouse_wheel().1);
     let mut cursor = Cursor::new(mouse_position());
     let mut last_size = (screen_width(), screen_height());
-    let mut objects = vec![Object::sphere3d()];
     let mut angle = Angle::new();
     let camera = Camera::new(Vec4f::new(0.0, 0.0, 0.0, -5.0));
     let mut axes = Axes::new(100.0, windows.main.config().y - 100.0);
