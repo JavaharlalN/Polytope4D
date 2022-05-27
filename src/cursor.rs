@@ -60,11 +60,16 @@ impl Cursor {
         self,
         button: &Button,
         window: Option<(f32, f32, f32, f32)>,
+        tolerance: Option<f32>,
     ) -> bool {
+        let p = match tolerance {
+            Some(v) => v,
+            None => 0.0,
+        };
         let (x, y) = button.get_pos(window);
         let (w, h) = button.size();
-        self.real.x >= x && self.real.x < x + w &&
-        self.real.y >= y && self.real.y < y + h
+        self.real.x >= x - p && self.real.x < x + w + p &&
+        self.real.y >= y - p && self.real.y < y + h + p
     }
 
     pub fn next(&mut self) {
