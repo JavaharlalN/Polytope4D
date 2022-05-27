@@ -1,3 +1,5 @@
+use macroquad::prelude::draw_rectangle_lines;
+
 use super::*;
 
 pub fn draw_cursor(cursor: &Cursor) {
@@ -103,6 +105,7 @@ pub fn draw_main_window(
     axes:        &Axes,
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
+    cursor_drawn: &mut bool,
 ) {
     if window.is_hidden() { return }
     for obj in objects.iter() {
@@ -113,10 +116,69 @@ pub fn draw_main_window(
     }
     draw_axes(axes, window.config().w, window.config().h);
     draw_motion_axes(motion_axes);
-    draw_cursor(cursor);
+    if !*cursor_drawn {
+        draw_cursor(cursor);
+        *cursor_drawn = true;
+    }
     if let Some(buttons) = window.buttons() {
         for button in buttons {
             draw_button(button, Some(window.as_tuple()));
+        }
+    }
+}
+
+pub fn draw_border(x: f32, y: f32, w: f32, h: f32) {
+    let tl = (x - 1.0, y - 1.0); // top left
+    let tr = (x + w + 1.0, y - 1.0); // top right
+    let bl = (x - 1.0, y + h + 1.0); // bottom left
+    let br = (x + w + 1.0, y + h + 1.0); // bottom right
+    draw_line(tl.0, tl.1, tr.0, tr.1, 2.0, Color::new(0.3, 0.3, 0.3, 1.0));
+    draw_line(tr.0, tr.1, br.0, br.1, 2.0, Color::new(0.3, 0.3, 0.3, 1.0));
+    draw_line(br.0, br.1, bl.0, bl.1, 2.0, Color::new(0.3, 0.3, 0.3, 1.0));
+    draw_line(bl.0, bl.1, tl.0, tl.1, 2.0, Color::new(0.3, 0.3, 0.3, 1.0));
+}
+
+pub fn draw_start_window(
+    window:       &Window,
+    cursor:       &Cursor,
+    cursor_drawn: &mut bool,
+) {
+    if window.is_hidden() { return }
+    let (x, y, w, h) = window.as_tuple();
+    draw_line(x, y + 16.0, x + w, y + 16.0, 2.0, Color::new(0.3, 0.3, 0.3, 0.5));
+    draw_border(x, y, w, h);
+    if !*cursor_drawn {
+        draw_cursor(cursor);
+        *cursor_drawn = true;
+    }
+    if let Window::Start(start_window) = window {
+        draw_content(&start_window.content);
+    }
+    if let Some(buttons) = window.buttons() {
+        for button in buttons {
+            draw_button(button, Some((x, y, w, h)));
+        }
+    }
+}
+
+pub fn draw_content(content: &Content) {
+    for item in content {
+        let (x, y) = item.get_pos();
+        // let sw = screen_width();
+        // let sh = screen_height();
+        // draw_rectangle(0.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top left
+        // draw_rectangle(sw / 2.0 - 150.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top center
+        // draw_rectangle(sw - 300.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top right
+        // draw_rectangle(sw / 2.0 - 150.0, sh / 2.0 + 22.0 - 25.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // middle
+        // draw_rectangle(0.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom left
+        // draw_rectangle(sw / 2.0 - 150.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom center
+        // draw_rectangle(sw - 300.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom right
+        match item {
+            ContentItem::H1(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
+            ContentItem::H2(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
+            ContentItem::H3(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
+            ContentItem::Text(t) => { draw_text_ex(&t.value, x, y, t.get_params()); },
+            ContentItem::Div(_, _, _)       => todo!(),
         }
     }
 }
@@ -125,38 +187,19 @@ pub fn draw_overlapping_window(
     window: &OverlappingWindow,
     cursor: &Cursor
 ) {
-    if !window.hidden {
-        for item in &window.content {
-            let (x, y) = item.get_pos();
-            // let sw = screen_width();
-            // let sh = screen_height();
-            // draw_rectangle(0.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top left
-            // draw_rectangle(sw / 2.0 - 150.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top center
-            // draw_rectangle(sw - 300.0, 22.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // top right
-            // draw_rectangle(sw / 2.0 - 150.0, sh / 2.0 + 22.0 - 25.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // middle
-            // draw_rectangle(0.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom left
-            // draw_rectangle(sw / 2.0 - 150.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom center
-            // draw_rectangle(sw - 300.0, sh - 50.0, 300.0, 50.0, Color::new(0.0, 0.0, 0.0, 0.1)); // bottom right
-            match item {
-                ContentItem::H1(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
-                ContentItem::H2(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
-                ContentItem::H3(t)   => { draw_text_ex(&t.value, x, y, t.get_params()); },
-                ContentItem::Text(t) => { draw_text_ex(&t.value, x, y, t.get_params()); },
-                ContentItem::Div(_, _, _)       => todo!(),
-            }
-        }
-    }
+    if !window.hidden { draw_content(&window.content); }
     draw_cursor(cursor);
 }
 
-pub fn draw_windows<'a>(
-    windows:     &'a WindowGroup,
+pub fn draw_windows(
+    windows:     &WindowGroup,
     objects:     &Vec<Object>,
     buttons:     &Vec<Button>,
     axes:        &Axes,
     motion_axes: &MotionAxes,
     cursor:      &Cursor,
 ) {
+    let mut cursor_drawn = true;
     draw_overlapping_window(&windows.instructions, cursor);
     draw_main_window(
         &windows.main,
@@ -164,6 +207,12 @@ pub fn draw_windows<'a>(
         axes,
         motion_axes,
         cursor,
+        &mut cursor_drawn,
+    );
+    draw_start_window(
+        &windows.start,
+        cursor,
+        &mut cursor_drawn,
     );
     for button in buttons {
         draw_button( button, None);
@@ -213,7 +262,6 @@ pub fn draw_button(button: &Button, window: Option<(f32, f32, f32, f32)>) {
     draw_rectangle(
         x, y,
         w, h,
-        // thickness,
         Color::new(k, k, k, 1.0)
     );
     draw_texture(
