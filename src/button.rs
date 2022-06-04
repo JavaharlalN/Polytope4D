@@ -1,33 +1,36 @@
 use super::*;
 
 #[derive(Debug, Copy, Clone)]
-pub enum ButtonAlign {
+pub enum Align {
+    Middle,
     TopLeft,
     TopRight,
+    TopCenter,
     BottomLeft,
     BottomRight,
+    BottomCenter,
 }
 
 #[derive(Debug, Clone)]
 pub struct CheckButton {
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
+    x:       f32,
+    y:       f32,
+    w:       f32,
+    h:       f32,
     texture: Texture2D,
-    hover: bool,
+    hover:   bool,
     checked: bool,
-    align: ButtonAlign,
-    btype: ButtonType,
+    align:   Align,
+    btype:   ButtonType,
 }
 
 impl CheckButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign, btype: ButtonType) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: Align, btype: ButtonType) -> Self {
         Self {
             x, y,
             w, h,
             texture: Texture2D::from_file_with_format(std::fs::read(sprite).unwrap().as_slice(), None),
-            hover: false,
+            hover:   false,
             checked: false,
             align,
             btype,
@@ -37,32 +40,41 @@ impl CheckButton {
 
 #[derive(Debug, Clone)]
 pub enum ButtonType {
+    CreateTesseract,
+    CreateSphere3D,
+    SelectionType,
+    Settings,
     Import,
     Export,
-    SelectionType,
+    Close,
+    Info,
 }
 
 #[derive(Debug, Clone)]
 pub struct ClickButton {
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
+    x:       f32,
+    y:       f32,
+    w:       f32,
+    h:       f32,
     texture: Texture2D,
-    hover: bool,
-    hold: bool,
-    align: ButtonAlign,
-    btype: ButtonType,
+    hover:   bool,
+    hold:    bool,
+    align:   Align,
+    btype:   ButtonType,
 }
 
 impl ClickButton {
-    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: &str, align: ButtonAlign, btype: ButtonType) -> Self {
+    pub fn new(x: f32, y: f32, w: f32, h: f32, sprite: Option<&str>, align: Align, btype: ButtonType) -> Self {
+        let texture = match sprite {
+            Some(path) => Texture2D::from_file_with_format(std::fs::read(path).unwrap().as_slice(), None),
+            None => Texture2D::empty(),
+        };
         Self {
             x, y,
             w, h,
-            texture: Texture2D::from_file_with_format(std::fs::read(sprite).unwrap().as_slice(), None),
-            hover: false,
-            hold: false,
+            texture,
+            hover:   false,
+            hold:    false,
             align,
             btype,
         }
@@ -125,7 +137,7 @@ impl Button {
         }
     }
 
-    pub fn align(&self) -> ButtonAlign {
+    pub fn align(&self) -> Align {
         match self {
             Button::Check(btn) => btn.align,
             Button::Click(btn) => btn.align,
@@ -139,15 +151,24 @@ impl Button {
         }
     }
 
-    pub fn get_pos(&self, window: &Window) -> (f32, f32) {
-        let (xw, yw) = window.pos();
-        let (w, h) = window.size();
+    pub fn get_pos(&self, window: Option<(f32, f32, f32, f32)>) -> (f32, f32) {
+        let (xw, yw) = match window {
+            Some(win) => (win.0, win.1),
+            None => (0.0, 0.0),
+        };
+        let (w, h) = match window {
+            Some(win) => (win.2, win.3),
+            None => (screen_width(), screen_height()),
+        };
         let (xb, yb) = self.offset();
         match self.align() {
-            ButtonAlign::TopLeft     => (xw + xb,     yw + yb),
-            ButtonAlign::TopRight    => (xw + xb + w, yw + yb),
-            ButtonAlign::BottomLeft  => (xw + xb,     yw + yb + h),
-            ButtonAlign::BottomRight => (xw + xb + w, yw + yb + h),
+            Align::Middle       => (xw + xb + w / 2.0, yw + yb + h / 2.0),
+            Align::TopLeft      => (xw + xb,           yw + yb          ),
+            Align::TopRight     => (xw + xb + w,       yw + yb          ),
+            Align::TopCenter    => (xw + xb + w / 2.0, yw + yb          ),
+            Align::BottomLeft   => (xw + xb,           yw + yb + h      ),
+            Align::BottomRight  => (xw + xb + w,       yw + yb + h      ),
+            Align::BottomCenter => (xw + xb + w,       yw + yb + h / 2.0),
         }
     }
 

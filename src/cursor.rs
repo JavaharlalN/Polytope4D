@@ -1,5 +1,5 @@
-use crate::window::Window;
 use super::Button;
+use crate::window::Window;
 
 const STEPS: u8 = 10;
 
@@ -59,12 +59,17 @@ impl Cursor {
     pub fn intersect_with_button(
         self,
         button: &Button,
-        window: &Window,
+        window: Option<(f32, f32, f32, f32)>,
+        tolerance: Option<f32>,
     ) -> bool {
+        let p = match tolerance {
+            Some(v) => v,
+            None => 0.0,
+        };
         let (x, y) = button.get_pos(window);
         let (w, h) = button.size();
-        self.real.x >= x && self.real.x < x + w &&
-        self.real.y >= y && self.real.y < y + h
+        self.real.x >= x - p && self.real.x < x + w + p &&
+        self.real.y >= y - p && self.real.y < y + h + p
     }
 
     pub fn next(&mut self) {
@@ -98,6 +103,10 @@ impl Cursor {
         self.conf = self.real.clone();
         self.rect = true;
         self.step = 0;
+    }
+
+    pub fn is_pos_set(&self, x: f32, y: f32) -> bool{
+        self.need.x - x  + self.need.y - y == 0.0
     }
 
     pub fn reset(&mut self) {

@@ -1,26 +1,24 @@
-mod comparison;
-mod rotation;
-mod display;
+mod axes;
+mod edge;
 mod vector;
 mod object;
 mod camera;
-mod axes;
-mod edge;
-
-pub use std::fmt::Display;
-pub use std::fmt::Result;
-pub use std::fmt::Formatter;
-pub use object::Object;
-pub use vector::*;
-pub use camera::*;
-pub use axes::*;
+mod display;
+mod rotation;
+mod comparison;
 pub use edge::*;
-
+pub use axes::*;
+pub use camera::*;
+pub use vector::*;
+pub use object::Object;
+pub use std::fmt::Result;
+pub use std::fmt::Display;
+pub use std::fmt::Formatter;
 use crate::dist_to_edge;
 
-pub const CLICK_TIMEOUT: u128 = 200;
+pub const CLICK_TIMEOUT:    u128 = 200;
 pub const CUR_TRANSFORM_TO: u128 = 20;
-pub const MAX_DIST: f32 = 20.0;
+pub const MAX_DIST:         f32  = 20.0;
 
 pub fn get_center(objects: &Vec<Object>) -> Option<Vec4f> {
     let mut center = Vec4f::new0();
