@@ -186,13 +186,13 @@ impl Object {
     pub fn sphere3d() -> Self {
         let mut vertices = vec![];
         let rs = 1.5; // start radius
-        let n = 11;
-        for xy in 0..2 * n {
-            let a = PI / n as f32 * xy as f32;
+        let n = 20;
+        for xy in 0..n {
+            let a = 2.0 * PI / n as f32 * xy as f32;
             let (x, y) = Vec4f::new(a.cos() * rs, a.sin() * rs, 0.0, 0.0).xy();
             let r = x.abs();
-            for xz in 0..2 * n {
-                let b = PI / n as f32 * xz as f32;
+            for xz in 0..n {
+                let b = 2.0 * PI / n as f32 * xz as f32;
                 let v = Vec4f::new(b.cos() * r, y, b.sin() * r, 0.0);
                 vertices.push(v);
             }
@@ -202,7 +202,7 @@ impl Object {
             edges: vec![],
             faces: vec![],
             cells: vec![],
-            name: Some("Hypersphere".to_string()),
+            name: Some("Sphere 3D".to_string()),
         }
     }
 
