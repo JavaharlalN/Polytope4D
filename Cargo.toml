@@ -7,9 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-macroquad = "0.3.15"
 rfd = "0.8.2"
 hex = "0.4.3"
 rdev = "0.5.1"
+miniquad = "0.3.3"
 lazy_static = "1.4.0"
 tokio = { version = "1.18.2", features = ["full"] }
+glam = {version = "0.14", features = ["scalar-math"] }
